@@ -35,7 +35,4 @@
         app:layout_constraintStart_toEndOf="@id/folder_tile_iv"
         app:layout_constraintBottom_toBottomOf="@id/folder_tile_iv"/>
 
-
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>
