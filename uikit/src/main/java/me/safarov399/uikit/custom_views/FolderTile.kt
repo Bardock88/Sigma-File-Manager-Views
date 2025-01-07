@@ -1,11 +1,11 @@
-package me.safarov399.sigmafilemanagerviews.custom_views
+package me.safarov399.uikit.custom_views
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
-import me.safarov399.sigmafilemanagerviews.R
-import me.safarov399.sigmafilemanagerviews.databinding.FolderTileBinding
+import me.safarov399.uikit.R
+import me.safarov399.uikit.databinding.FolderTileBinding
 
 class FolderTile @JvmOverloads constructor(
     context: Context,
