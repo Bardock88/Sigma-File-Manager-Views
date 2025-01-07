@@ -21,3 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Sigma File Manager"
 include(":app")
+include(":uikit")
+include(":common")
