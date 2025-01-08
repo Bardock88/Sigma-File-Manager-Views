@@ -23,3 +23,6 @@ rootProject.name = "Sigma File Manager"
 include(":app")
 include(":uikit")
 include(":common")
+include(":feature")
+include(":feature:home")
+include(":feature:settings")
