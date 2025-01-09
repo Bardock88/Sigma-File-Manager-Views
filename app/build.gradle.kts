@@ -35,6 +35,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -48,7 +49,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
 
     implementation(project(":common"))
     implementation(project(":uikit"))
+    implementation(project(":feature"))
+    implementation(project(":feature:home"))
+    implementation(project(":feature:settings"))
 }
