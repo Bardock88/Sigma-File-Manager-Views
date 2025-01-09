@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "me.safarov399.home"
+    namespace = "me.safarov399.core"
     compileSdk = 34
 
     defaultConfig {
@@ -17,10 +17,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
@@ -29,10 +26,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-    }
-    buildFeatures {
-        viewBinding = true
-        buildConfig = true
     }
 }
 
@@ -44,6 +37,4 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-    implementation(project(":core"))
 }

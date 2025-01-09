@@ -11,6 +11,8 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import me.safarov399.home.databinding.FragmentHomeBinding
@@ -19,10 +21,21 @@ import me.safarov399.home.databinding.FragmentHomeBinding
 class HomeFragment : Fragment() {
 
     private var binding: FragmentHomeBinding? = null
+    private val requiredPermissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    private val requestPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        for(permission in permissions) {
+            if(!permission.value) {
+                break
+            }
+        }
+
+        if(!checkStoragePermissions()) {
+            activity?.finish()
+        }
+    }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         return binding?.root
@@ -40,7 +53,16 @@ class HomeFragment : Fragment() {
         binding = null
     }
 
-    fun checkStoragePermissions(): Boolean {
+    private fun requestStoragePermission() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            requestStoragePermissionAndroid11AndHigher()
+        }
+        else {
+            requestStoragePermissionAndroid10AndLower()
+        }
+    }
+
+    private fun checkStoragePermissions(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             //Android is 11 (R) or above
             return Environment.isExternalStorageManager()
@@ -53,45 +75,19 @@ class HomeFragment : Fragment() {
         }
     }
 
-//    private fun requestForStoragePermissions() {
-//        //Android is 11 (R) or above
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//            try {
-//                val intent = Intent()
-//                intent.setAction(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-//                val uri = Uri.fromParts("package", requireActivity().packageName, null)
-//                intent.setData(uri)
-//                storageActivityResultLauncher.launch(intent)
-//            } catch (e: Exception) {
-//                val intent = Intent()
-//                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-//                storageActivityResultLauncher.launch(intent)
-//            }
-//        } else {
-//            //Below android 11
-//            ActivityCompat.requestPermissions(
-//                requireActivity(),
-//                arrayOf(
-//                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//                    Manifest.permission.READ_EXTERNAL_STORAGE
-//                ),
-//                STORAGE_PERMISSION_CODE
-//            )
-//        }
-//    }
+    private fun requestStoragePermissionAndroid10AndLower() {
+        requestPermissionsLauncher.launch(requiredPermissions)
+    }
 
-    private fun requestStoragePermission() {
-
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun requestStoragePermissionAndroid11AndHigher() {
         val uri = Uri.fromParts("package", requireActivity().packageName, null)
         startActivity(
             Intent(
-                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                uri
+                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri
             )
         )
     }
 
-    companion object {
-        private const val STORAGE_PERMISSION_CODE: Int = 100
-    }
+
 }
