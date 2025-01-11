@@ -13,7 +13,6 @@ class PermissionDialog(ctx: Context): Dialog(ctx) {
     init {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         setCancelable(false)
-//        window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         binding = PermissionRequestDialogBinding.inflate(LayoutInflater.from(context))
         binding.permissionDialogCancelBtn.setOnClickListener {
             (ctx as Activity).finish()
@@ -39,5 +38,4 @@ class PermissionDialog(ctx: Context): Dialog(ctx) {
     fun setDescription(text: String) {
         binding.permissionDialogDescriptionTv.text = text
     }
-
 }

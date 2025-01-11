@@ -47,7 +47,6 @@ class HomeFragment : Fragment() {
     ) { _ ->
         val isPermissionGranted = Environment.isExternalStorageManager()
         if (!isPermissionGranted) {
-            // Permission not granted, finish the activity
             showPermissionRequestDialog()
         }
     }
