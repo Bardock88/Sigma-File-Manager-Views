@@ -3,4 +3,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="gray">#FF666666</color>
+    <color name="transparent">#00000000</color>
+
+    <color name="default_text_color">@color/black</color>
+    <color name="default_dialog_color">@color/white</color>
 </resources>
