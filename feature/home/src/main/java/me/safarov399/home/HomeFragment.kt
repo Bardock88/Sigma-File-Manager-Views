@@ -22,15 +22,23 @@ class HomeFragment : Fragment() {
 
     private var binding: FragmentHomeBinding? = null
     private val requiredPermissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    private val requestPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-        for(permission in permissions) {
-            if(!permission.value) {
+    private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        for (permission in permissions) {
+            if (!permission.value) {
                 break
             }
         }
     }
 
-    private fun handleStoragePermission() {
+    @RequiresApi(Build.VERSION_CODES.R)
+    private val manageAllFilesPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+            val isPermissionGranted = Environment.isExternalStorageManager()
+            if (!isPermissionGranted) {
+                // Permission not granted, finish the activity
+                activity?.finish()
+            }
 
     }
 
@@ -54,10 +62,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun requestStoragePermission() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             requestStoragePermissionAndroid11AndHigher()
-        }
-        else {
+        } else {
             requestStoragePermissionAndroid10AndLower()
         }
     }
@@ -76,35 +83,18 @@ class HomeFragment : Fragment() {
     }
 
     private fun requestStoragePermissionAndroid10AndLower() {
-        requestPermissionsLauncher.launch(requiredPermissions)
+        requestAndroid10AndBelowPermissionsLauncher.launch(requiredPermissions)
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun requestStoragePermissionAndroid11AndHigher() {
         val uri = Uri.fromParts("package", requireActivity().packageName, null)
-        startActivityForResult(
-            Intent(
-                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri
-            ), MANAGE_ALL_FILES_PERMISSION_CODE
+
+        val intent = Intent(
+            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri
         )
+        manageAllFilesPermissionLauncher.launch(intent)
+
     }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == MANAGE_ALL_FILES_PERMISSION_CODE) {
-            val isPermissionGranted = Environment.isExternalStorageManager()
-
-            if (!isPermissionGranted) {
-                // Permission not granted, finish the activity
-                activity?.finish()
-            }
-        }
-    }
-
-    companion object {
-        const val MANAGE_ALL_FILES_PERMISSION_CODE = 100
-    }
-
 
 }
