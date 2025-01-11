@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import me.safarov399.home.databinding.FragmentHomeBinding
+import me.safarov399.uikit.custom_views.dialogs.PermissionRequestDialog
 
 
 class HomeFragment : Fragment() {
@@ -51,8 +52,15 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding?.permissionButton?.setOnClickListener {
+
+        val dialog = PermissionRequestDialog(requireActivity())
+        dialog.setConfirmationOnClickListener {
+            dialog.dismiss()
             requestStoragePermission()
+        }
+
+        binding?.permissionButton?.setOnClickListener {
+            dialog.show()
         }
     }
 
