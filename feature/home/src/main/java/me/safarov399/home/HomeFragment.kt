@@ -28,10 +28,10 @@ class HomeFragment : Fragment() {
                 break
             }
         }
+    }
 
-        if(!checkStoragePermissions()) {
-            activity?.finish()
-        }
+    private fun handleStoragePermission() {
+
     }
 
     override fun onCreateView(
@@ -82,11 +82,28 @@ class HomeFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.R)
     private fun requestStoragePermissionAndroid11AndHigher() {
         val uri = Uri.fromParts("package", requireActivity().packageName, null)
-        startActivity(
+        startActivityForResult(
             Intent(
                 Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri
-            )
+            ), MANAGE_ALL_FILES_PERMISSION_CODE
         )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == MANAGE_ALL_FILES_PERMISSION_CODE) {
+            val isPermissionGranted = Environment.isExternalStorageManager()
+
+            if (!isPermissionGranted) {
+                // Permission not granted, finish the activity
+                activity?.finish()
+            }
+        }
+    }
+
+    companion object {
+        const val MANAGE_ALL_FILES_PERMISSION_CODE = 100
     }
 
 
