@@ -36,11 +36,10 @@ class HomeFragment : Fragment() {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) || !shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 goToSettingsDialog()
             } else {
-                activity?.finish()
+               showPermissionRequestDialog()
             }
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.R)
     private val requestAndroid11AndHigherPermissionLauncher = registerForActivityResult(
@@ -62,6 +61,7 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         val hasStoragePermission = checkStoragePermissions()
         if (!hasStoragePermission) {
             showPermissionRequestDialog()
@@ -95,7 +95,6 @@ class HomeFragment : Fragment() {
         }
         dialog.show()
     }
-
 
     private fun requestStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
