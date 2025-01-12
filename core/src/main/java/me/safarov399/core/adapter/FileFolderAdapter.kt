@@ -64,7 +64,7 @@ class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(
         fun bind(folderModel: FolderModel) {
             val itemCountText = if(folderModel.itemCount == 0L) {
                 "Empty"
-            } else folderModel.itemCount.toString() + " items"
+            } else if(folderModel.itemCount == -1L) {"<DIR>"} else folderModel.itemCount.toString() + " items"
             binding.folderTileTitleTv.text = folderModel.name
             binding.folderItemCountTv.text = itemCountText
         }
