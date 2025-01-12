@@ -5,4 +5,8 @@
         <attr name="titleText"/>
         <attr name="itemCount" format="string"/>
     </declare-styleable>
+    <declare-styleable name="FileTile">
+        <attr name="titleText"/>
+        <attr name="fileSize" format="string"/>
+    </declare-styleable>
 </resources>

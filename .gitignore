@@ -15,3 +15,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+app/src/main/java/me/safarov399/sigmafilemanagerviews/MainActivity.kt
+app/src/main/res/layout/activity_main.xml
+feature/home/src/main/java/me/safarov399/home/HomeFragment.kt
+feature/home/src/main/java/me/safarov399/home/MockData.kt
+feature/home/src/main/res/layout/fragment_home.xml
+
