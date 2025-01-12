@@ -3,14 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="50dp">
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    >
 
     <ImageView
         android:id="@+id/folder_tile_iv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="@string/folder_icon"
-        android:padding="4dp"
         android:src="@drawable/folder"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -18,21 +19,21 @@
 
     <TextView
         android:id="@+id/folder_tile_title_tv"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingTop="4dp"
-        android:textSize="20sp"
+        android:textSize="18sp"
         app:layout_constraintStart_toEndOf="@id/folder_tile_iv"
-        app:layout_constraintTop_toTopOf="@id/folder_tile_iv"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         tools:text="Folder name" />
 
     <TextView
         android:id="@+id/folder_item_count_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingBottom="4dp"
         android:textColor="@color/gray"
-        app:layout_constraintBottom_toBottomOf="@id/folder_tile_iv"
+        app:layout_constraintTop_toBottomOf="@id/folder_tile_title_tv"
         app:layout_constraintStart_toEndOf="@id/folder_tile_iv"
         tools:text="35 items" />
 

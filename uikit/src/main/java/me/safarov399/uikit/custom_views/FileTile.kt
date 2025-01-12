@@ -21,4 +21,11 @@ class FileTile @JvmOverloads constructor(
             binding.fileSizeTv.text = getString(R.styleable.FileTile_fileSize) + " items"
         }
     }
+
+    fun setFileSizeText(text: String) {
+        binding.fileSizeTv.text = text
+    }
+    fun setFileTitleText(text: String) {
+        binding.fileTileTitleTv.text = text
+    }
 }

@@ -15,11 +15,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
+import me.safarov399.core.adapter.FileFolderAdapter
+import me.safarov399.domain.models.adapter.FileModel
+import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.home.databinding.FragmentHomeBinding
 import me.safarov399.uikit.custom_views.dialogs.PermissionDialog
+import java.io.File
 
 
 class HomeFragment : Fragment() {
+
+    private val fileFolderAdapter = FileFolderAdapter()
+    private var rv: RecyclerView? = null
 
     private var binding: FragmentHomeBinding? = null
     private val requiredPermissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -36,7 +44,7 @@ class HomeFragment : Fragment() {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) || !shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 goToSettingsDialog()
             } else {
-               showPermissionRequestDialog()
+                showPermissionRequestDialog()
             }
         }
     }
@@ -49,23 +57,27 @@ class HomeFragment : Fragment() {
         if (!isPermissionGranted) {
             showPermissionRequestDialog()
         }
+        else {
+            readStorage(Environment.getExternalStorageDirectory().toString())
+        }
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
+        rv = binding?.homeRv
         return binding?.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        rv?.adapter = fileFolderAdapter
         val hasStoragePermission = checkStoragePermissions()
         if (!hasStoragePermission) {
             showPermissionRequestDialog()
-        } else {
-//            Read files
+        }  else {
+            readStorage(Environment.getExternalStorageDirectory().toString())
         }
     }
 
@@ -128,5 +140,34 @@ class HomeFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         binding = null
+    }
+
+    private fun readStorage(path: String) {
+
+            val externalStorageDirectory = File(path)
+            val fileAndFolders = externalStorageDirectory.listFiles()
+            val onlyFiles = mutableListOf<FileModel>()
+            val onlyFolders = mutableListOf<FolderModel>()
+            for (file in fileAndFolders!!) {
+                if (file.isFile) {
+                    onlyFiles.add(FileModel(name = file.name, size = file.length()))
+                } else {
+                    onlyFolders.add(FolderModel(name = file.name, itemCount = file?.listFiles()?.size!!.toLong()))
+                }
+            }
+
+            onlyFiles.sortBy { it.name }
+            onlyFolders.sortBy { it.name }
+            val sortedFileFolders = onlyFolders + onlyFiles
+            fileFolderAdapter.submitList(sortedFileFolders)
+
+
+
+            println("\n\n")
+            println(onlyFiles.toString())
+            println(onlyFolders.toString())
+            println("\n\n")
+
+
     }
 }

@@ -62,8 +62,11 @@ class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(
     internal class FolderViewHolder(private val binding: FolderTileBinding) : RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SetTextI18n")
         fun bind(folderModel: FolderModel) {
+            val itemCountText = if(folderModel.itemCount == 0L) {
+                "Empty"
+            } else folderModel.itemCount.toString() + " items"
             binding.folderTileTitleTv.text = folderModel.name
-            binding.folderItemCountTv.text = folderModel.itemCount.toString() + " items"
+            binding.folderItemCountTv.text = itemCountText
         }
     }
 

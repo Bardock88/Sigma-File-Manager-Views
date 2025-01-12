@@ -20,4 +20,11 @@ class FolderTile @JvmOverloads constructor(
             binding.folderItemCountTv.text = getString(R.styleable.FolderTile_itemCount) + " items"
         }
     }
+
+    fun folderItemCount(text: String) {
+        binding.folderItemCountTv.text = text
+    }
+    fun folderTitleText(text: String) {
+        binding.folderTileTitleTv.text = text
+    }
 }
