@@ -13,10 +13,11 @@ import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
 
 class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(FileFolderDiffUtilCallback()) {
+    private var onClickListener: OnClickListener? = null
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return when(viewType) {
+        return when (viewType) {
             FILE_VIEW -> {
                 FileViewHolder(
                     binding = FileTileBinding.inflate(
@@ -24,6 +25,7 @@ class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(
                     )
                 )
             }
+
             FOLDER_VIEW -> {
                 FolderViewHolder(
                     binding = FolderTileBinding.inflate(
@@ -31,16 +33,31 @@ class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(
                     )
                 )
             }
+
             else -> throw IllegalArgumentException("Invalid type of view type $viewType at")
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when(val item = getItem(position)) {
-            is FileModel -> (holder as FileViewHolder).bind(item)
-            is FolderModel -> (holder as FolderViewHolder).bind(item)
+        when (val item = getItem(position)) {
+            is FileModel -> {
+                (holder as FileViewHolder).bind(item)
+
+            }
+
+            is FolderModel -> {
+                (holder as FolderViewHolder).bind(item)
+                holder.itemView.setOnClickListener {
+                    onClickListener?.onClick(position, item)
+                }
+            }
+
             else -> throw IllegalArgumentException("Invalid holder type for position $position")
         }
+    }
+
+    fun setOnClickListener(listener: OnClickListener?) {
+        this.onClickListener = listener
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -62,8 +79,13 @@ class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(
     internal class FolderViewHolder(private val binding: FolderTileBinding) : RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SetTextI18n")
         fun bind(folderModel: FolderModel) {
+            val itemCountText = if (folderModel.itemCount == 0L) {
+                "Empty"
+            } else if (folderModel.itemCount == -1L) {
+                "<DIR>"
+            } else folderModel.itemCount.toString() + " items"
             binding.folderTileTitleTv.text = folderModel.name
-            binding.folderItemCountTv.text = folderModel.itemCount.toString() + " items"
+            binding.folderItemCountTv.text = itemCountText
         }
     }
 

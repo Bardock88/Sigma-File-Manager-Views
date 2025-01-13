@@ -11,18 +11,34 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
+import me.safarov399.core.PermissionConstants
+import me.safarov399.core.adapter.FileFolderAdapter
+import me.safarov399.core.adapter.OnClickListener
+import me.safarov399.core.base.BaseFragment
+import me.safarov399.core.storage.StorageConstants
+import me.safarov399.domain.models.adapter.FileFolderModel
+import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.home.databinding.FragmentHomeBinding
 import me.safarov399.uikit.custom_views.dialogs.PermissionDialog
 
 
-class HomeFragment : Fragment() {
+@AndroidEntryPoint
+class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiState, HomeEffect, HomeEvent>() {
 
-    private var binding: FragmentHomeBinding? = null
-    private val requiredPermissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    private var fileFolderAdapter: FileFolderAdapter? = null
+    private var rv: RecyclerView? = null
+
+    private lateinit var backPressCallback: OnBackPressedCallback
+    private val defaultPath = Environment.getExternalStorageDirectory().toString()
+    private var currentPath = defaultPath
+
+
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
             if (!permission.value) {
@@ -31,12 +47,12 @@ class HomeFragment : Fragment() {
         }
 
         if (checkStoragePermissions()) {
-//            Read files
+            postEvent(HomeEvent.ChangePath(defaultPath))
         } else {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) || !shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 goToSettingsDialog()
             } else {
-               showPermissionRequestDialog()
+                showPermissionRequestDialog()
             }
         }
     }
@@ -48,25 +64,85 @@ class HomeFragment : Fragment() {
         val isPermissionGranted = Environment.isExternalStorageManager()
         if (!isPermissionGranted) {
             showPermissionRequestDialog()
+        } else {
+            postEvent(HomeEvent.ChangePath(defaultPath))
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentHomeBinding.inflate(inflater, container, false)
-        return binding?.root
+    override fun onStateUpdate(state: HomeUiState) {
+
+        currentPath = state.currentPath
+        backPressCallback.isEnabled = currentPath != defaultPath
+
+        fileFolderAdapter?.submitList(state.currentFileFolders)
+        fileFolderAdapter?.setOnClickListener(
+            object : OnClickListener {
+                override fun onClick(position: Int, model: FileFolderModel) {
+                    val folderName = (model as FolderModel).name
+                    val temporaryCurrentPath = if (state.currentPath.endsWith("/")) {
+                        state.currentPath + folderName
+                    } else {
+                        "${state.currentPath}/$folderName"
+                    }
+
+                    if (temporaryCurrentPath !in StorageConstants.RESTRICTED_DIRECTORIES) {
+                        state.currentPath = temporaryCurrentPath
+                        postEvent(HomeEvent.ChangePath(state.currentPath))
+                    }
+
+                }
+            }
+        )
+        binding.homeNavUp.setOnClickListener {
+            if (state.currentPath != defaultPath) {
+                postEvent(
+                    HomeEvent.ChangePath(
+                        state.currentPath.substringBeforeLast("/")
+                    )
+                )
+            }
+        }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    private fun configureViews() {
+        rv = binding.homeRv
+        fileFolderAdapter = FileFolderAdapter()
+        rv?.adapter = fileFolderAdapter
+    }
 
+    private fun handlePermissionAndStorageReading() {
         val hasStoragePermission = checkStoragePermissions()
         if (!hasStoragePermission) {
             showPermissionRequestDialog()
         } else {
-//            Read files
+            postEvent(HomeEvent.ChangePath(defaultPath))
         }
+    }
+
+    private fun handleBackPress() {
+        backPressCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (currentPath != defaultPath) {
+                    postEvent(
+                        HomeEvent.ChangePath(
+                            currentPath.substringBeforeLast("/")
+                        )
+                    )
+                } else {
+                    isEnabled = false // Allow the system to handle back press
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        }
+        requireActivity()
+            .onBackPressedDispatcher
+            .addCallback(viewLifecycleOwner, backPressCallback)
+    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        configureViews()
+        handlePermissionAndStorageReading()
+        handleBackPress()
     }
 
     private fun showPermissionRequestDialog() {
@@ -77,6 +153,7 @@ class HomeFragment : Fragment() {
         }
         dialog.show()
     }
+
 
     private fun goToSettingsDialog() {
         val dialog = PermissionDialog(requireActivity())
@@ -99,7 +176,7 @@ class HomeFragment : Fragment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             requestStoragePermissionAndroid11AndHigher()
         } else {
-            requestAndroid10AndBelowPermissionsLauncher.launch(requiredPermissions)
+            requestAndroid10AndBelowPermissionsLauncher.launch(PermissionConstants.requiredPermissionsAndroid10AndBelow)
         }
     }
 
@@ -125,8 +202,15 @@ class HomeFragment : Fragment() {
         requestAndroid11AndHigherPermissionLauncher.launch(intent)
     }
 
+    override fun getViewModelClass(): Class<HomeViewModel> = HomeViewModel::class.java
+
+    override val getViewBinding: (LayoutInflater, ViewGroup?, Boolean) -> FragmentHomeBinding = { inflater, viewGroup, value ->
+        FragmentHomeBinding.inflate(inflater, viewGroup, value)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        binding = null
+        rv = null
+        fileFolderAdapter = null
     }
 }

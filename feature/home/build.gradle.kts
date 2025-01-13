@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    id("com.google.dagger.hilt.android")
+    id("kotlin-kapt")
 }
 
 android {
@@ -47,5 +49,11 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":uikit"))
     implementation(project(":domain"))
+
+    implementation (libs.activity.ktx)
+    implementation (libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
 
 }

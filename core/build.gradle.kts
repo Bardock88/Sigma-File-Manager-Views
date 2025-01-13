@@ -31,6 +31,10 @@ android {
 
 dependencies {
 
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.activity.ktx)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
