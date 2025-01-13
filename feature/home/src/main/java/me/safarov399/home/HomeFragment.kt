@@ -27,7 +27,6 @@ import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.home.databinding.FragmentHomeBinding
 import me.safarov399.uikit.custom_views.dialogs.PermissionDialog
 
-
 @AndroidEntryPoint
 class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiState, HomeEffect, HomeEvent>() {
 
@@ -37,7 +36,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private lateinit var backPressCallback: OnBackPressedCallback
     private val defaultPath = Environment.getExternalStorageDirectory().toString()
     private var currentPath = defaultPath
-
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -69,6 +67,13 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        configureViews()
+        handlePermissionAndStorageReading()
+        handleBackPress()
+    }
+
     override fun onStateUpdate(state: HomeUiState) {
 
         currentPath = state.currentPath
@@ -93,6 +98,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 }
             }
         )
+
         binding.homeNavUp.setOnClickListener {
             if (state.currentPath != defaultPath) {
                 postEvent(
@@ -138,12 +144,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             .onBackPressedDispatcher
             .addCallback(viewLifecycleOwner, backPressCallback)
     }
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        configureViews()
-        handlePermissionAndStorageReading()
-        handleBackPress()
-    }
 
     private fun showPermissionRequestDialog() {
         val dialog = PermissionDialog(requireActivity())
@@ -153,7 +153,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
         dialog.show()
     }
-
 
     private fun goToSettingsDialog() {
         val dialog = PermissionDialog(requireActivity())

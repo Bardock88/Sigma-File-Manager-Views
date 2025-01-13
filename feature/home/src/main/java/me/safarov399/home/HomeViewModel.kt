@@ -28,7 +28,6 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
                         )
                     )
                 }.collect()
-
             }
         }
     }
@@ -61,10 +60,7 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
         return flow {
             emit(sortedFileFolders)
         }
-
-
     }
 
     override fun getInitialState(): HomeUiState = HomeUiState()
-
 }
