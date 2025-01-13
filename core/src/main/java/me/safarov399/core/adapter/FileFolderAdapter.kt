@@ -13,8 +13,8 @@ import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
 
 class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(FileFolderDiffUtilCallback()) {
-    private var onClickListener: OnClickListener? = null
 
+    private var onClickListener: OnClickListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {

@@ -2,10 +2,6 @@ package me.safarov399.home
 
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import me.safarov399.core.base.BaseViewModel
 import me.safarov399.core.storage.StorageConstants
@@ -20,19 +16,17 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
     override fun onEventUpdate(event: HomeEvent) {
         when (event) {
             is HomeEvent.ChangePath -> viewModelScope.launch(Dispatchers.IO) {
-                readStorage(event.newPath).onEach {
-                    setState(
-                        getCurrentState().copy(
-                            currentPath = event.newPath,
-                            currentFileFolders = it
-                        )
+                setState(
+                    getCurrentState().copy(
+                        currentPath = event.newPath,
+                        currentFileFolders = readStorage(event.newPath)
                     )
-                }.collect()
+                )
             }
         }
     }
 
-    private fun readStorage(path: String): Flow<List<FileFolderModel>> {
+    private fun readStorage(path: String): List<FileFolderModel> {
         val externalStorageDirectory = File(path)
         val fileAndFolders = externalStorageDirectory.listFiles()
         val onlyFiles = mutableListOf<FileModel>()
@@ -55,11 +49,7 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
 
         onlyFiles.sortBy { it.name }
         onlyFolders.sortBy { it.name }
-        val sortedFileFolders = onlyFolders + onlyFiles
-
-        return flow {
-            emit(sortedFileFolders)
-        }
+        return (onlyFolders + onlyFiles)
     }
 
     override fun getInitialState(): HomeUiState = HomeUiState()
