@@ -25,6 +25,7 @@ import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.adapter.OnClickListener
 import me.safarov399.core.base.BaseFragment
 import me.safarov399.core.storage.StorageConstants
+import me.safarov399.core.storage.StorageConstants.DEFAULT_DIRECTORY
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.home.databinding.FragmentHomeBinding
@@ -36,9 +37,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var fileFolderAdapter: FileFolderAdapter? = null
     private var rv: RecyclerView? = null
 
-    private lateinit var backPressCallback: OnBackPressedCallback
-    private val defaultPath = Environment.getExternalStorageDirectory().toString()
-    private var currentPath = defaultPath
+    private var backPressCallback: OnBackPressedCallback? = null
+    private var currentPath = DEFAULT_DIRECTORY
 
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -49,7 +49,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
 
         if (checkStoragePermissions()) {
-            postEvent(HomeEvent.ChangePath(defaultPath))
+            postEvent(HomeEvent.ChangePath(DEFAULT_DIRECTORY))
         } else {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) || !shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 goToSettingsDialog()
@@ -67,7 +67,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         if (!isPermissionGranted) {
             showPermissionRequestDialog()
         } else {
-            postEvent(HomeEvent.ChangePath(defaultPath))
+            postEvent(HomeEvent.ChangePath(DEFAULT_DIRECTORY))
         }
     }
 
@@ -82,7 +82,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     override fun onStateUpdate(state: HomeUiState) {
 
         currentPath = state.currentPath
-        backPressCallback.isEnabled = currentPath != defaultPath
+        backPressCallback?.isEnabled = currentPath != DEFAULT_DIRECTORY
 
         fileFolderAdapter?.submitList(state.currentFileFolders)
         fileFolderAdapter?.setOnClickListener(object : OnClickListener {
@@ -104,7 +104,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         })
 
         binding.homeNavUp.setOnClickListener {
-            if (state.currentPath != defaultPath) {
+            if (state.currentPath != DEFAULT_DIRECTORY) {
                 val nextPath = state.currentPath.substringBeforeLast("/")
                 postEvent(
                     HomeEvent.ChangePath(
@@ -112,9 +112,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                     )
                 )
                 binding.homeToolbarCl.findViewById<TextView>(R.id.path_tv).text = nextPath
-
             }
-
         }
     }
 
@@ -122,10 +120,17 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         rv = binding.homeRv
         fileFolderAdapter = FileFolderAdapter()
         rv?.adapter = fileFolderAdapter
+        binding.homeToolbarCl.findViewById<TextView>(R.id.path_tv).text = DEFAULT_DIRECTORY
+
         view.post {
             val insets = ViewCompat.getRootWindowInsets(view)
             if (insets != null) {
-                binding.homeToolbarCl.setPadding(32, insets.getInsets(WindowInsetsCompat.Type.systemBars()).top, 0, 32)
+                binding.homeToolbarCl.setPadding(
+                    resources.getDimension(me.safarov399.uikit.R.dimen.home_toolbar_padding_start).toInt(),
+                    insets.getInsets(WindowInsetsCompat.Type.systemBars()).top,
+                    0,
+                    resources.getDimension(me.safarov399.uikit.R.dimen.home_toolbar_padding_bottom).toInt(),
+                )
             }
         }
     }
@@ -135,14 +140,14 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         if (!hasStoragePermission) {
             showPermissionRequestDialog()
         } else {
-            postEvent(HomeEvent.ChangePath(defaultPath))
+            postEvent(HomeEvent.ChangePath(DEFAULT_DIRECTORY))
         }
     }
 
     private fun handleBackPress() {
         backPressCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (currentPath != defaultPath) {
+                if (currentPath != DEFAULT_DIRECTORY) {
                     postEvent(
                         HomeEvent.ChangePath(
                             currentPath.substringBeforeLast("/")
@@ -155,11 +160,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 }
             }
         }
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressCallback)
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressCallback as OnBackPressedCallback)
     }
 
     private fun showPermissionRequestDialog() {
         val dialog = PermissionDialog(requireActivity())
+        dialog.setTitle(getString(me.safarov399.common.R.string.permission_dialog_title))
+        dialog.setDescription(getString(me.safarov399.common.R.string.permission_dialog_description))
+        dialog.setConfirmButtonText(getString(me.safarov399.common.R.string.ok))
+        dialog.setCancelButtonText(getString(me.safarov399.common.R.string.cancel))
         dialog.setConfirmationOnClickListener {
             dialog.dismiss()
             requestStoragePermission()
@@ -169,10 +178,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
     private fun goToSettingsDialog() {
         val dialog = PermissionDialog(requireActivity())
-        dialog.setTitle("Permission not granted")
-        dialog.setDescription("Please go to settings to give storage permission.")
-        dialog.setConfirmButtonText("Go to settings")
-        dialog.setCancelButtonText("Exit the app")
+        dialog.setTitle(getString(me.safarov399.common.R.string.not_granted_title))
+        dialog.setDescription(getString(me.safarov399.common.R.string.not_granted_description))
+        dialog.setConfirmButtonText(getString(me.safarov399.common.R.string.not_granted_confirm))
+        dialog.setCancelButtonText(getString(me.safarov399.common.R.string.not_granted_cancel))
         dialog.setConfirmationOnClickListener {
             val intent = Intent(
                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().packageName)
@@ -224,5 +233,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         super.onDestroy()
         rv = null
         fileFolderAdapter = null
+        backPressCallback = null
     }
 }

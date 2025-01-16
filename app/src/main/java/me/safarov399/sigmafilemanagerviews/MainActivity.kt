@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import dagger.hilt.android.AndroidEntryPoint
-import me.safarov399.home.HomeFragment
 import me.safarov399.sigmafilemanagerviews.databinding.ActivityMainBinding
 
 @AndroidEntryPoint
