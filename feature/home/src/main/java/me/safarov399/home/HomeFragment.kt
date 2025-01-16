@@ -11,10 +11,13 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import me.safarov399.core.PermissionConstants
@@ -36,6 +39,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private lateinit var backPressCallback: OnBackPressedCallback
     private val defaultPath = Environment.getExternalStorageDirectory().toString()
     private var currentPath = defaultPath
+
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -69,7 +73,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        configureViews()
+
+        configureViews(view)
         handlePermissionAndStorageReading()
         handleBackPress()
     }
@@ -80,40 +85,49 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         backPressCallback.isEnabled = currentPath != defaultPath
 
         fileFolderAdapter?.submitList(state.currentFileFolders)
-        fileFolderAdapter?.setOnClickListener(
-            object : OnClickListener {
-                override fun onClick(position: Int, model: FileFolderModel) {
-                    val folderName = (model as FolderModel).name
-                    val temporaryCurrentPath = if (state.currentPath.endsWith("/")) {
-                        state.currentPath + folderName
-                    } else {
-                        "${state.currentPath}/$folderName"
-                    }
-
-                    if (temporaryCurrentPath !in StorageConstants.RESTRICTED_DIRECTORIES) {
-                        state.currentPath = temporaryCurrentPath
-                        postEvent(HomeEvent.ChangePath(state.currentPath))
-                    }
-
+        fileFolderAdapter?.setOnClickListener(object : OnClickListener {
+            override fun onClick(position: Int, model: FileFolderModel) {
+                val folderName = (model as FolderModel).name
+                val temporaryCurrentPath = if (state.currentPath.endsWith("/")) {
+                    state.currentPath + folderName
+                } else {
+                    "${state.currentPath}/$folderName"
                 }
+
+                if (temporaryCurrentPath !in StorageConstants.RESTRICTED_DIRECTORIES) {
+                    state.currentPath = temporaryCurrentPath
+                    postEvent(HomeEvent.ChangePath(state.currentPath))
+                }
+                binding.homeToolbarCl.findViewById<TextView>(R.id.path_tv).text = state.currentPath
+
             }
-        )
+        })
 
         binding.homeNavUp.setOnClickListener {
             if (state.currentPath != defaultPath) {
+                val nextPath = state.currentPath.substringBeforeLast("/")
                 postEvent(
                     HomeEvent.ChangePath(
-                        state.currentPath.substringBeforeLast("/")
+                        nextPath
                     )
                 )
+                binding.homeToolbarCl.findViewById<TextView>(R.id.path_tv).text = nextPath
+
             }
+
         }
     }
 
-    private fun configureViews() {
+    private fun configureViews(view: View) {
         rv = binding.homeRv
         fileFolderAdapter = FileFolderAdapter()
         rv?.adapter = fileFolderAdapter
+        view.post {
+            val insets = ViewCompat.getRootWindowInsets(view)
+            if (insets != null) {
+                binding.homeToolbarCl.setPadding(32, insets.getInsets(WindowInsetsCompat.Type.systemBars()).top, 0, 32)
+            }
+        }
     }
 
     private fun handlePermissionAndStorageReading() {
@@ -134,15 +148,14 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                             currentPath.substringBeforeLast("/")
                         )
                     )
+                    binding.homeToolbarCl.findViewById<TextView>(R.id.path_tv).text = currentPath.substringBeforeLast("/")
                 } else {
                     isEnabled = false // Allow the system to handle back press
                     requireActivity().onBackPressedDispatcher.onBackPressed()
                 }
             }
         }
-        requireActivity()
-            .onBackPressedDispatcher
-            .addCallback(viewLifecycleOwner, backPressCallback)
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressCallback)
     }
 
     private fun showPermissionRequestDialog() {
