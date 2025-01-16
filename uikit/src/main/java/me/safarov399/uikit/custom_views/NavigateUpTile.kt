@@ -11,6 +11,14 @@ class NavigateUpTile @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+
+    /**
+     * `fragment_home.xml` is unable to see this view without binding. That is why,
+     * ```kotlin
+     * @Suppress("unused")
+     * ```
+     * is used here.
+     */
     @Suppress("unused")
     private val binding = NavigateUpTileBinding.inflate(LayoutInflater.from(context), this, true)
 }
