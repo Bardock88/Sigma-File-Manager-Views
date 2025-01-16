@@ -11,7 +11,6 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -29,7 +28,7 @@ import me.safarov399.core.storage.StorageConstants.DEFAULT_DIRECTORY
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.home.databinding.FragmentHomeBinding
-import me.safarov399.uikit.custom_views.dialogs.PermissionDialog
+import me.safarov399.uikit.custom_views.dialogs.SigmaDialog
 
 @AndroidEntryPoint
 class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiState, HomeEffect, HomeEvent>() {
@@ -73,10 +72,16 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         configureViews(view)
         handlePermissionAndStorageReading()
         handleBackPress()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if(checkStoragePermissions()) {
+            postEvent(HomeEvent.ChangePath(currentPath))
+        }
     }
 
     override fun onStateUpdate(state: HomeUiState) {
@@ -98,7 +103,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                     state.currentPath = temporaryCurrentPath
                     postEvent(HomeEvent.ChangePath(state.currentPath))
                 }
-                binding.homeToolbarCl.findViewById<TextView>(R.id.path_tv).text = state.currentPath
+                binding.pathTv.text = state.currentPath
 
             }
         })
@@ -111,7 +116,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                         nextPath
                     )
                 )
-                binding.homeToolbarCl.findViewById<TextView>(R.id.path_tv).text = nextPath
+                binding.pathTv.text = nextPath
             }
         }
     }
@@ -120,12 +125,12 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         rv = binding.homeRv
         fileFolderAdapter = FileFolderAdapter()
         rv?.adapter = fileFolderAdapter
-        binding.homeToolbarCl.findViewById<TextView>(R.id.path_tv).text = DEFAULT_DIRECTORY
+        binding.pathTv.text = DEFAULT_DIRECTORY
 
         view.post {
             val insets = ViewCompat.getRootWindowInsets(view)
             if (insets != null) {
-                binding.homeToolbarCl.setPadding(
+                binding.pathTv.setPadding(
                     resources.getDimension(me.safarov399.uikit.R.dimen.home_toolbar_padding_start).toInt(),
                     insets.getInsets(WindowInsetsCompat.Type.systemBars()).top,
                     0,
@@ -153,7 +158,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                             currentPath.substringBeforeLast("/")
                         )
                     )
-                    binding.homeToolbarCl.findViewById<TextView>(R.id.path_tv).text = currentPath.substringBeforeLast("/")
+                    binding.pathTv.text = currentPath.substringBeforeLast("/")
                 } else {
                     isEnabled = false // Allow the system to handle back press
                     requireActivity().onBackPressedDispatcher.onBackPressed()
@@ -164,7 +169,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     }
 
     private fun showPermissionRequestDialog() {
-        val dialog = PermissionDialog(requireActivity())
+        val dialog = SigmaDialog(requireActivity())
         dialog.setTitle(getString(me.safarov399.common.R.string.permission_dialog_title))
         dialog.setDescription(getString(me.safarov399.common.R.string.permission_dialog_description))
         dialog.setConfirmButtonText(getString(me.safarov399.common.R.string.ok))
@@ -177,7 +182,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     }
 
     private fun goToSettingsDialog() {
-        val dialog = PermissionDialog(requireActivity())
+        val dialog = SigmaDialog(requireActivity())
         dialog.setTitle(getString(me.safarov399.common.R.string.not_granted_title))
         dialog.setDescription(getString(me.safarov399.common.R.string.not_granted_description))
         dialog.setConfirmButtonText(getString(me.safarov399.common.R.string.not_granted_confirm))
