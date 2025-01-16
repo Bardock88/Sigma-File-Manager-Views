@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="home_toolbar_padding_start">16dp</dimen>
+    <dimen name="home_toolbar_padding_bottom">8dp</dimen>
+    <dimen name="home_toolbar_text_size">20sp</dimen>
+
+    <dimen name="home_nav_up_margin_start">16dp</dimen>
+    <dimen name="home_nav_up_margin_top">16dp</dimen>
+    <dimen name="navigate_up_text_size">20sp</dimen>
+
+    <dimen name="home_rv_padding_start">8dp</dimen>
+
+    <dimen name="file_title_size">18sp</dimen>
+    <dimen name="folder_title_size">18sp</dimen>
+
+    <dimen name="dialog_card_corner_radius">20dp</dimen>
+    <dimen name="dialog_width">300dp</dimen>
+    <dimen name="dialog_horizontal_padding">16dp</dimen>
+    <dimen name="dialog_padding_top">16dp</dimen>
+    <dimen name="dialog_padding_bottom">8dp</dimen>
+    <dimen name="dialog_description_padding_top">8dp</dimen>
+    <dimen name="dialog_description_size">16sp</dimen>
+    <dimen name="dialog_title_size">24sp</dimen>
+    <dimen name="dialog_button_text_size">16sp</dimen>
+
+</resources>

@@ -1,4 +1,24 @@
 <resources>
     <string name="app_name">Sigma File Manager</string>
     <string name="folder_icon">Folder</string>
+    <string name="size">bytes</string>
+    <string name="file_size">%1$s %2$s</string>
+
+    <string name="items">items</string>
+    <string name="folder_items">%1$s %2$s</string>
+
+    <string name="navigate_up_cd">Navigate up</string>
+    <string name="navigate_up_tv">...</string>
+
+    <string name="permission_dialog_title">Permission Required</string>
+    <string name="permission_dialog_description">This app requires storage permission to be able to access and handle the files.</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="not_granted_title">Permission not granted</string>
+    <string name="not_granted_description">Please go to settings to give storage permission.</string>
+    <string name="not_granted_confirm">Go to settings</string>
+    <string name="not_granted_cancel">Exit the app</string>
+    <string name="empty">Empty</string>
+
 </resources>

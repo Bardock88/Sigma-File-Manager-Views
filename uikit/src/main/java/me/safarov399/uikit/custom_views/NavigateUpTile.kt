@@ -11,7 +11,6 @@ class NavigateUpTile @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
-
     @Suppress("unused")
     private val binding = NavigateUpTileBinding.inflate(LayoutInflater.from(context), this, true)
 }
