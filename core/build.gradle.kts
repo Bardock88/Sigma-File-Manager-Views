@@ -44,4 +44,6 @@ dependencies {
 
     implementation(project(":domain"))
     implementation(project(":uikit"))
+    implementation(project(":common"))
+
 }

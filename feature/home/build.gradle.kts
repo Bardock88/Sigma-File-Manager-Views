@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":uikit"))
     implementation(project(":domain"))
+    implementation(project(":common"))
 
     implementation (libs.activity.ktx)
     implementation (libs.androidx.lifecycle.viewmodel.ktx)
