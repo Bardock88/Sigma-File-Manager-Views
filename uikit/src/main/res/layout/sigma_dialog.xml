@@ -4,7 +4,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     app:cardBackgroundColor="@color/default_dialog_color"
-    app:cardCornerRadius="@dimen/dialog_card_corner_radius">
+    app:cardCornerRadius="@dimen/dialog_corner_radius">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="@dimen/dialog_width"
