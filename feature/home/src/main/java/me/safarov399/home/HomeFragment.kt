@@ -37,6 +37,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var backPressCallback: OnBackPressedCallback? = null
     private var currentPath = DEFAULT_DIRECTORY
 
+    private var isClickable = true
+
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -77,19 +79,21 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
     override fun onResume() {
         super.onResume()
-        if(checkStoragePermissions()) {
+        if (checkStoragePermissions()) {
             postEvent(HomeEvent.ChangePath(currentPath))
         }
     }
 
     override fun onStateUpdate(state: HomeUiState) {
-
         currentPath = state.currentPath
         backPressCallback?.isEnabled = currentPath != DEFAULT_DIRECTORY
-
         fileFolderAdapter?.submitList(state.currentFileFolders)
+
         fileFolderAdapter?.setOnClickListener(object : OnClickListener {
             override fun onClick(position: Int, model: FileFolderModel) {
+                if (!isClickable) return // Ignore clicks if interaction is disabled
+                isClickable = false
+
                 val folderName = (model as FolderModel).name
                 val temporaryCurrentPath = if (state.currentPath.endsWith("/")) {
                     state.currentPath + folderName
@@ -98,11 +102,13 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 }
 
                 if (temporaryCurrentPath !in StorageConstants.RESTRICTED_DIRECTORIES) {
+                    postEvent(HomeEvent.ChangePath(temporaryCurrentPath))
                     state.currentPath = temporaryCurrentPath
-                    postEvent(HomeEvent.ChangePath(state.currentPath))
                 }
                 binding.pathTv.text = state.currentPath
 
+                // Re-enable interaction after a short delay
+                binding.root.postDelayed({ isClickable = true }, 500)
             }
         })
 
