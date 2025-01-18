@@ -15,8 +15,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import me.safarov399.core.PermissionConstants
@@ -72,7 +70,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        configureViews(view)
+        configureViews()
         handlePermissionAndStorageReading()
         handleBackPress()
     }
@@ -121,23 +119,11 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
-    private fun configureViews(view: View) {
+    private fun configureViews() {
         rv = binding.homeRv
         fileFolderAdapter = FileFolderAdapter()
         rv?.adapter = fileFolderAdapter
         binding.pathTv.text = DEFAULT_DIRECTORY
-
-        view.post {
-            val insets = ViewCompat.getRootWindowInsets(view)
-            if (insets != null) {
-                binding.pathTv.setPadding(
-                    resources.getDimension(me.safarov399.uikit.R.dimen.home_toolbar_padding_start).toInt(),
-                    insets.getInsets(WindowInsetsCompat.Type.systemBars()).top,
-                    0,
-                    resources.getDimension(me.safarov399.uikit.R.dimen.home_toolbar_padding_bottom).toInt(),
-                )
-            }
-        }
     }
 
     private fun handlePermissionAndStorageReading() {

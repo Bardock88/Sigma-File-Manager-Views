@@ -8,5 +8,5 @@
     <color name="default_text_color">@color/black</color>
     <color name="default_dialog_color">@color/white</color>
 
-    <color name="toolbar_green">#FF00AA00</color>
+    <color name="toolbar">#FF00AA00</color>
 </resources>
