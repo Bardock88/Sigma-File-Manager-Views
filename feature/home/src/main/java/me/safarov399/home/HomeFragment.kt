@@ -11,22 +11,27 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.MimeTypeMap
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.adapter.OnClickListener
 import me.safarov399.core.base.BaseFragment
-import me.safarov399.core.storage.StorageConstants
 import me.safarov399.core.storage.StorageConstants.DEFAULT_DIRECTORY
+import me.safarov399.core.storage.StorageConstants.RESTRICTED_DIRECTORIES
 import me.safarov399.domain.models.adapter.FileFolderModel
+import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.home.databinding.FragmentHomeBinding
 import me.safarov399.uikit.custom_views.dialogs.SigmaDialog
+import java.io.File
+
 
 @AndroidEntryPoint
 class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiState, HomeEffect, HomeEvent>() {
@@ -38,7 +43,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var currentPath = DEFAULT_DIRECTORY
 
     private var isClickable = true
-
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -101,7 +105,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                     "${state.currentPath}/$folderName"
                 }
 
-                if (temporaryCurrentPath !in StorageConstants.RESTRICTED_DIRECTORIES) {
+                if (temporaryCurrentPath !in RESTRICTED_DIRECTORIES) {
                     postEvent(HomeEvent.ChangePath(temporaryCurrentPath))
                     state.currentPath = temporaryCurrentPath
                 }
@@ -109,6 +113,23 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
                 // Re-enable interaction after a short delay
                 binding.root.postDelayed({ isClickable = true }, 500)
+            }
+        }, object : OnClickListener {
+            override fun onClick(position: Int, model: FileFolderModel) {
+                if (!isClickable) return // Ignore clicks if interaction is disabled
+                isClickable = false
+
+                val file = File(state.currentPath, (model as FileModel).name)
+                val uri = FileProvider.getUriForFile(requireContext(), requireActivity().packageName + ".fileprovider", file)
+                val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension) ?: "*/*"
+
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, mimeType)
+                    flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                }
+
+                startActivity(intent)
+                isClickable = true // Reset the flag after handling the intent
             }
         })
 

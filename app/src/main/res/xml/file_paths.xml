@@ -1,0 +1,11 @@
+<paths>
+    <!-- Grant access to all directories and subdirectories in the external storage root -->
+    <files-path name="my_files" path="files" />
+    <files-path name="my_other_files" path="other_files" />
+    <cache-path name="my_cache" path="cache" />
+    <external-path name="my_external" path="." />
+    <external-files-path name="my_external_files" path="." />
+    <external-cache-path name="my_external_cache" path="external_cache" />
+    <external-media-path name="my_external_media" path="external_media" />
+    <root-path name="/" path="." />
+</paths>

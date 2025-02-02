@@ -4,7 +4,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.safarov399.core.base.BaseViewModel
-import me.safarov399.core.storage.StorageConstants
+import me.safarov399.core.storage.StorageConstants.DANGEROUS_DIRECTORIES
+import me.safarov399.core.storage.StorageConstants.DATA_DIRECTORY
+import me.safarov399.core.storage.StorageConstants.OBB_DIRECTORY
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
@@ -35,8 +37,8 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
             if (file.isFile) {
                 onlyFiles.add(FileModel(name = file.name, size = file.length()))
             } else {
-                if (path in StorageConstants.DANGEROUS_DIRECTORIES) {
-                    if (file.name.equals("data") || file.name.equals("obb")) {
+                if (path in DANGEROUS_DIRECTORIES) {
+                    if (file.name.equals(DATA_DIRECTORY) || file.name.equals(OBB_DIRECTORY)) {
                         onlyFolders.add(FolderModel(name = file.name, itemCount = -1L))
                     } else {
                         onlyFolders.add(FolderModel(name = file.name, itemCount = file?.listFiles()?.size!!.toLong()))
