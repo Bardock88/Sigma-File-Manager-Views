@@ -1,7 +1,6 @@
 package me.safarov399.home
 
 import android.Manifest
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -9,10 +8,10 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.MimeTypeMap
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -24,8 +23,8 @@ import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.adapter.OnClickListener
 import me.safarov399.core.base.BaseFragment
-import me.safarov399.core.storage.StorageConstants
 import me.safarov399.core.storage.StorageConstants.DEFAULT_DIRECTORY
+import me.safarov399.core.storage.StorageConstants.RESTRICTED_DIRECTORIES
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
@@ -44,7 +43,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var currentPath = DEFAULT_DIRECTORY
 
     private var isClickable = true
-
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -107,7 +105,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                     "${state.currentPath}/$folderName"
                 }
 
-                if (temporaryCurrentPath !in StorageConstants.RESTRICTED_DIRECTORIES) {
+                if (temporaryCurrentPath !in RESTRICTED_DIRECTORIES) {
                     postEvent(HomeEvent.ChangePath(temporaryCurrentPath))
                     state.currentPath = temporaryCurrentPath
                 }
@@ -121,20 +119,17 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 if (!isClickable) return // Ignore clicks if interaction is disabled
                 isClickable = false
 
-                val filePath = File(state.currentPath, (model as FileModel).name)
-                val uri = FileProvider.getUriForFile(requireContext(), requireActivity().packageName + ".fileprovider", filePath)
+                val file = File(state.currentPath, (model as FileModel).name)
+                val uri = FileProvider.getUriForFile(requireContext(), requireActivity().packageName + ".fileprovider", file)
+                val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension) ?: "*/*"
 
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.setData(uri)
-                intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-
-                try {
-                    startActivity(intent)
-                } catch (e: ActivityNotFoundException) {
-                    Log.e("FileOpenError", "No app found to open this file.")
-                } finally {
-                    isClickable = true // Reset the flag after handling the intent
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, mimeType)
+                    flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 }
+
+                startActivity(intent)
+                isClickable = true // Reset the flag after handling the intent
             }
         })
 
