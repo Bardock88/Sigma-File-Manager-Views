@@ -1,6 +1,7 @@
 package me.safarov399.home
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -8,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +17,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import me.safarov399.core.PermissionConstants
@@ -24,9 +27,12 @@ import me.safarov399.core.base.BaseFragment
 import me.safarov399.core.storage.StorageConstants
 import me.safarov399.core.storage.StorageConstants.DEFAULT_DIRECTORY
 import me.safarov399.domain.models.adapter.FileFolderModel
+import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.home.databinding.FragmentHomeBinding
 import me.safarov399.uikit.custom_views.dialogs.SigmaDialog
+import java.io.File
+
 
 @AndroidEntryPoint
 class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiState, HomeEffect, HomeEvent>() {
@@ -109,6 +115,26 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
                 // Re-enable interaction after a short delay
                 binding.root.postDelayed({ isClickable = true }, 500)
+            }
+        }, object : OnClickListener {
+            override fun onClick(position: Int, model: FileFolderModel) {
+                if (!isClickable) return // Ignore clicks if interaction is disabled
+                isClickable = false
+
+                val filePath = File(state.currentPath, (model as FileModel).name)
+                val uri = FileProvider.getUriForFile(requireContext(), requireActivity().packageName + ".fileprovider", filePath)
+
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.setData(uri)
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+
+                try {
+                    startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    Log.e("FileOpenError", "No app found to open this file.")
+                } finally {
+                    isClickable = true // Reset the flag after handling the intent
+                }
             }
         })
 
