@@ -16,7 +16,8 @@ import java.util.Locale
 
 class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(FileFolderDiffUtilCallback()) {
 
-    private var onClickListener: OnClickListener? = null
+    private var onFolderClickListener: OnClickListener? = null
+    private var onFileClickListener: OnClickListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
@@ -44,12 +45,15 @@ class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(
         when (val item = getItem(position)) {
             is FileModel -> {
                 (holder as FileViewHolder).bind(item)
+                holder.itemView.setOnClickListener {
+                    onFileClickListener?.onClick(position, item)
+                }
             }
 
             is FolderModel -> {
                 (holder as FolderViewHolder).bind(item)
                 holder.itemView.setOnClickListener {
-                    onClickListener?.onClick(position, item)
+                    onFolderClickListener?.onClick(position, item)
                 }
             }
 
@@ -57,8 +61,9 @@ class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(
         }
     }
 
-    fun setOnClickListener(listener: OnClickListener?) {
-        this.onClickListener = listener
+    fun setOnClickListener(folderListener: OnClickListener?, fileListener: OnClickListener) {
+        this.onFolderClickListener = folderListener
+        this.onFileClickListener = fileListener
     }
 
     override fun getItemViewType(position: Int): Int {
