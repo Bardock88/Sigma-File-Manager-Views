@@ -125,17 +125,14 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 val fileExtension = file.extension
                 val uri = FileProvider.getUriForFile(requireContext(), requireActivity().packageName + ".fileprovider", file)
 
-                if(fileExtension == "apk") {
-                    if(checkApkInstallPermission()) {
+                if (fileExtension == "apk") {
+                    if (requireActivity().packageManager.canRequestPackageInstalls()) {
                         installApk(file.absolutePath)
-                    }
-                    else {
+                    } else {
                         requestApkInstallPermission()
                     }
-                }
-                else {
+                } else {
                     val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension) ?: "*/*"
-
                     val intent = Intent(Intent.ACTION_VIEW).apply {
                         setDataAndType(uri, mimeType)
                         flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -209,23 +206,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         dialog.show()
     }
 
-    // 1. Check APK install permission
-    private fun checkApkInstallPermission(): Boolean {
-        return requireActivity().packageManager.canRequestPackageInstalls()
-    }
-
-    // 2. Request APK install permission (redirects to the settings screen)
 
     private fun requestApkInstallPermission() {
         val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
             data = Uri.parse("package:${requireActivity().packageName}")
         }
-        // Using the new Activity Result API is preferred;
-        // however, if you’re using this in a simple scenario, you can start the intent directly.
         startActivity(intent)
     }
 
-    // 3. Install an APK from its file path (apkUri should be a String file path)
+
     private fun installApk(apkUri: String) {
         val apkFile = File(apkUri)
         if (!apkFile.exists()) {
@@ -233,7 +222,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             return
         }
 
-        // Get a content URI using the FileProvider
         val fileUri: Uri = FileProvider.getUriForFile(
             requireActivity(),
             "${requireActivity().packageName}.fileprovider",
