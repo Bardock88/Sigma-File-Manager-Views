@@ -1,6 +1,7 @@
 package me.safarov399.home
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -8,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -120,15 +122,28 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 isClickable = false
 
                 val file = File(state.currentPath, (model as FileModel).name)
+                val fileExtension = file.extension
                 val uri = FileProvider.getUriForFile(requireContext(), requireActivity().packageName + ".fileprovider", file)
-                val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension) ?: "*/*"
 
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, mimeType)
-                    flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                if(fileExtension == "apk") {
+                    if(checkApkInstallPermission()) {
+                        installApk(file.absolutePath)
+                    }
+                    else {
+                        requestApkInstallPermission()
+                    }
+                }
+                else {
+                    val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension) ?: "*/*"
+
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, mimeType)
+                        flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    }
+
+                    startActivity(intent)
                 }
 
-                startActivity(intent)
                 isClickable = true // Reset the flag after handling the intent
             }
         })
@@ -193,6 +208,50 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
         dialog.show()
     }
+
+    // 1. Check APK install permission
+    private fun checkApkInstallPermission(): Boolean {
+        return requireActivity().packageManager.canRequestPackageInstalls()
+    }
+
+    // 2. Request APK install permission (redirects to the settings screen)
+
+    private fun requestApkInstallPermission() {
+        val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+            data = Uri.parse("package:${requireActivity().packageName}")
+        }
+        // Using the new Activity Result API is preferred;
+        // however, if you’re using this in a simple scenario, you can start the intent directly.
+        startActivity(intent)
+    }
+
+    // 3. Install an APK from its file path (apkUri should be a String file path)
+    private fun installApk(apkUri: String) {
+        val apkFile = File(apkUri)
+        if (!apkFile.exists()) {
+            Log.e("APKInstall", "APK file does not exist: $apkUri")
+            return
+        }
+
+        // Get a content URI using the FileProvider
+        val fileUri: Uri = FileProvider.getUriForFile(
+            requireActivity(),
+            "${requireActivity().packageName}.fileprovider",
+            apkFile
+        )
+
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(fileUri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        try {
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Log.e("APKInstall", "No activity found to handle APK installation", e)
+        }
+    }
+
 
     private fun goToSettingsDialog() {
         val dialog = SigmaDialog(requireActivity())
