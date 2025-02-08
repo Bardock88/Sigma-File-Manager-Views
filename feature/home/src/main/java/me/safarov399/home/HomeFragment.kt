@@ -138,7 +138,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
                     startActivity(intent)
                 }
-
                 isClickable = true // Reset the flag after handling the intent
             }
         })
@@ -162,7 +161,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         rv?.adapter = fileFolderAdapter
         binding.pathTv.text = DEFAULT_DIRECTORY
     }
-
 
 
     private fun handleBackPress() {
