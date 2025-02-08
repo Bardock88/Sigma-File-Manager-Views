@@ -53,9 +53,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             }
         }
 
-        if (checkStoragePermissions()) {
-            postEvent(HomeEvent.ChangePath(DEFAULT_DIRECTORY))
-        } else {
+        if (!checkStoragePermissions()) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) || !shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 goToSettingsDialog()
             } else {
@@ -71,15 +69,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         val isPermissionGranted = Environment.isExternalStorageManager()
         if (!isPermissionGranted) {
             showPermissionRequestDialog()
-        } else {
-            postEvent(HomeEvent.ChangePath(DEFAULT_DIRECTORY))
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         configureViews()
-        handlePermissionAndStorageReading()
+        if (!checkStoragePermissions()) {
+            showPermissionRequestDialog()
+        }
         handleBackPress()
     }
 
@@ -165,14 +163,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         binding.pathTv.text = DEFAULT_DIRECTORY
     }
 
-    private fun handlePermissionAndStorageReading() {
-        val hasStoragePermission = checkStoragePermissions()
-        if (!hasStoragePermission) {
-            showPermissionRequestDialog()
-        } else {
-            postEvent(HomeEvent.ChangePath(DEFAULT_DIRECTORY))
-        }
-    }
+
 
     private fun handleBackPress() {
         backPressCallback = object : OnBackPressedCallback(true) {
