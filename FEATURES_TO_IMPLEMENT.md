@@ -1,0 +1,99 @@
+# Upcoming features.
+<br>
+<br>
+• Creation:
+    • Empty file
+    • Empty folder
+• File Operations:
+    • Copy
+    • Move
+    • Rename
+    • Delete
+• Sorting by:
+    • Name
+    • Date
+    • Size
+    • Type
+• Display file details:
+    • Size
+    • Modified date
+    • File type and description
+• Show file previews/thumbnails:
+    • Images:
+        • JPEG
+        • BMP
+        • PNG
+        • WEBP
+        • GIF
+        • HEIF
+        • TIFF
+        • ICO
+        • DNG
+        • CR2
+        • NEF
+        • SVG
+        • more to be added
+    • Videos:
+        • Common formats, popular codecs
+        • (almost) All formats, (almost) all codecs
+        • Detailed information will be added later on.
+    • E-Books:
+        • PDF
+        • DJVU
+        • EPUB
+        • FB2
+        • more extensions to be added
+• File Compression and Extraction:
+    • Unprotected formats
+        • ZIP
+        • RAR
+        • 7z
+        • RAR
+        • GZ
+        • BZ2
+        • XZ
+        • ARJ
+        • ACE
+        • ZPAQ
+        • LZH
+        • LZX
+        • more to be added
+    • Password protected format
+        • ZIP
+        • RAR
+        • 7Z
+• Allow users to connect to cloud storage services to browse, download, or upload files:
+    • Google Drive
+    • DropBox
+• Allow users to "mount" archive files as directories for browsing without extraction:
+    • ZIP
+    • RAR
+    • 7z
+    • more to be added
+• Implement support for files on remote servers:
+    • FTP
+    • SFTP
+    • SMB
+    • more to be added
+• Undo
+• Redo
+• Logging
+• Batch:
+    • Renaming
+    • Moving
+    • Copying
+    • Deleting
+File Metadata Editing and Viewing:
+    • EXIF data for images
+    • ID3 tags for music
+    • Document properties
+• Add a search bar to allow users to search for files and directories.
+• Bookmarking / Favorites: Let users bookmark frequently accessed directories for quick navigation.
+• Use file system watchers (e.g., FileObserver) to update the UI in real time as files change.
+• Adding Root support and Root operations.
+• Adding the ability to browse system directories.
+• For lengthy operations (copying large directories, moving files, etc.), background processing with progress bars and cancellation options.
+• Built-In File Encryption/Decryption: Allow users to encrypt and decrypt files within the app.
+• Dual-Pane Mode / Multi-Window Support: Allow users to view two directories side by side (or in a split-screen layout).
+<br><br>
+## Disclaimer: This file may change and some of the features may not be implemented at all. Added features will be removed from this file.
