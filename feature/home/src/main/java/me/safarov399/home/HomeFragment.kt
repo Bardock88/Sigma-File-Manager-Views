@@ -20,6 +20,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 import me.safarov399.common.MiscellaneousConstants.FILE_TYPE
 import me.safarov399.common.MiscellaneousConstants.FOLDER_TYPE
@@ -241,12 +242,14 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 setTitle(getString(me.safarov399.common.R.string.create_file))
                 setHint(getString(me.safarov399.common.R.string.enter_file_name))
                 setConfirmAction {
+                    postEvent(HomeEvent.CreateObject(findViewById<TextInputEditText>(me.safarov399.uikit.R.id.cff_name_tiet).text.toString(), currentPath, FILE_TYPE))
                     dismiss()
                 }
             } else {
                 setTitle(getString(me.safarov399.common.R.string.create_folder))
                 setHint(getString(me.safarov399.common.R.string.enter_folder_name))
                 setConfirmAction {
+                    postEvent(HomeEvent.CreateObject(findViewById<TextInputEditText>(me.safarov399.uikit.R.id.cff_name_tiet).text.toString(), currentPath, FOLDER_TYPE))
                     dismiss()
                 }
             }
