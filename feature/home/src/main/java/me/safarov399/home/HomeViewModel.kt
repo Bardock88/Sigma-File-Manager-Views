@@ -43,6 +43,11 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
     private fun createFileFolder(name: String, path: String, type: Int) {
         val file = File(path, name)
         if(type == FILE_TYPE) {
+            if ("/" in name) {
+                val parentPath = name.substringBeforeLast("/")
+                val parentDirectory = File(path, parentPath)
+                parentDirectory.mkdirs()    // Creates the parent directory before trying to create the file
+            }
             file.createNewFile()
         } else {
             file.mkdirs()

@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -242,15 +243,25 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 setTitle(getString(me.safarov399.common.R.string.create_file))
                 setHint(getString(me.safarov399.common.R.string.enter_file_name))
                 setConfirmAction {
-                    postEvent(HomeEvent.CreateObject(findViewById<TextInputEditText>(me.safarov399.uikit.R.id.cff_name_tiet).text.toString(), currentPath, FILE_TYPE))
-                    dismiss()
+                    val fileToCreate = findViewById<TextInputEditText>(me.safarov399.uikit.R.id.cff_name_tiet).text.toString()
+                    if(fileToCreate.isNotBlank()) {
+                        postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FILE_TYPE))
+                        dismiss()
+                    } else {
+                        Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_name_must_not_empty), Toast.LENGTH_SHORT).show()
+                    }
                 }
             } else {
                 setTitle(getString(me.safarov399.common.R.string.create_folder))
                 setHint(getString(me.safarov399.common.R.string.enter_folder_name))
                 setConfirmAction {
-                    postEvent(HomeEvent.CreateObject(findViewById<TextInputEditText>(me.safarov399.uikit.R.id.cff_name_tiet).text.toString(), currentPath, FOLDER_TYPE))
-                    dismiss()
+                    val fileToCreate = findViewById<TextInputEditText>(me.safarov399.uikit.R.id.cff_name_tiet).text.toString()
+                    if(fileToCreate.isNotBlank()) {
+                        postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FOLDER_TYPE))
+                        dismiss()
+                    } else {
+                        Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_name_must_not_empty), Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
             setCancelAction {
