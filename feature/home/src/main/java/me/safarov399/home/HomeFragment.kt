@@ -31,7 +31,8 @@ import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.home.databinding.FragmentHomeBinding
-import me.safarov399.uikit.custom_views.dialogs.SigmaDialog
+import me.safarov399.uikit.custom_views.dialogs.CreateFileFolderDialog
+import me.safarov399.uikit.custom_views.dialogs.PermissionDialog
 import java.io.File
 
 
@@ -45,6 +46,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var currentPath = DEFAULT_DIRECTORY
 
     private var isClickable = true
+    private var areAllFabVisible = false
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -95,6 +97,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
         fileFolderAdapter?.setOnClickListener(object : OnClickListener {
             override fun onClick(position: Int, model: FileFolderModel) {
+                hideFab()
+
                 if (!isClickable) return // Ignore clicks if interaction is disabled
                 isClickable = false
 
@@ -116,6 +120,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             }
         }, object : OnClickListener {
             override fun onClick(position: Int, model: FileFolderModel) {
+                hideFab()
+
                 if (!isClickable) return // Ignore clicks if interaction is disabled
                 isClickable = false
 
@@ -144,6 +150,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
         binding.homeNavUp.setOnClickListener {
             if (state.currentPath != DEFAULT_DIRECTORY) {
+                hideFab()
                 val nextPath = state.currentPath.substringBeforeLast("/")
                 postEvent(
                     HomeEvent.ChangePath(
@@ -159,7 +166,44 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         rv = binding.homeRv
         fileFolderAdapter = FileFolderAdapter()
         rv?.adapter = fileFolderAdapter
+
         binding.pathTv.text = DEFAULT_DIRECTORY
+
+        hideFab()
+        binding.homeCreateEfab.setOnClickListener {
+            if(areAllFabVisible) {
+                hideFab()
+            } else {
+                showFab()
+            }
+        }
+        binding.homeCreateFolderFab.setOnClickListener {
+            showCreateFileDialog()
+        }
+        binding.homeCreateFileFab.setOnClickListener {
+            showCreateFileDialog()
+        }
+    }
+
+    private fun hideFab() {
+        binding.apply {
+            homeCreateFileFab.hide()
+            homeCreateFolderFab.hide()
+            homeCreateFolderTv.visibility = View.GONE
+            homeCreateFileTv.visibility = View.GONE
+            homeCreateEfab.shrink()
+        }
+        areAllFabVisible = false
+    }
+    private fun showFab() {
+        binding.apply {
+            homeCreateFileFab.show()
+            homeCreateFolderFab.show()
+            homeCreateFolderTv.visibility = View.VISIBLE
+            homeCreateFileTv.visibility = View.VISIBLE
+            homeCreateEfab.extend()
+        }
+        areAllFabVisible = true
     }
 
 
@@ -182,8 +226,23 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressCallback as OnBackPressedCallback)
     }
 
+    private fun showCreateFileDialog() {
+        val dialog = CreateFileFolderDialog(requireActivity())
+        dialog.apply {
+            setTitle("Create file")
+            setHint("Enter file name")
+            setConfirmAction {
+                dismiss()
+            }
+            setCancelAction {
+                dismiss()
+            }
+            show()
+        }
+    }
+
     private fun showPermissionRequestDialog() {
-        val dialog = SigmaDialog(requireActivity())
+        val dialog = PermissionDialog(requireActivity())
         dialog.setTitle(getString(me.safarov399.common.R.string.permission_dialog_title))
         dialog.setDescription(getString(me.safarov399.common.R.string.permission_dialog_description))
         dialog.setConfirmButtonText(getString(me.safarov399.common.R.string.ok))
@@ -231,7 +290,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
 
     private fun goToSettingsDialog() {
-        val dialog = SigmaDialog(requireActivity())
+        val dialog = PermissionDialog(requireActivity())
         dialog.setTitle(getString(me.safarov399.common.R.string.not_granted_title))
         dialog.setDescription(getString(me.safarov399.common.R.string.not_granted_description))
         dialog.setConfirmButtonText(getString(me.safarov399.common.R.string.not_granted_confirm))
