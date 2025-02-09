@@ -21,6 +21,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
+import me.safarov399.common.MiscellaneousConstants.FILE_TYPE
+import me.safarov399.common.MiscellaneousConstants.FOLDER_TYPE
 import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.adapter.OnClickListener
@@ -171,17 +173,17 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
         hideFab()
         binding.homeCreateEfab.setOnClickListener {
-            if(areAllFabVisible) {
+            if (areAllFabVisible) {
                 hideFab()
             } else {
                 showFab()
             }
         }
         binding.homeCreateFolderFab.setOnClickListener {
-            showCreateFileDialog()
+            showCreateFileFolderDialog(FOLDER_TYPE)
         }
         binding.homeCreateFileFab.setOnClickListener {
-            showCreateFileDialog()
+            showCreateFileFolderDialog(FILE_TYPE)
         }
     }
 
@@ -195,6 +197,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
         areAllFabVisible = false
     }
+
     private fun showFab() {
         binding.apply {
             homeCreateFileFab.show()
@@ -226,13 +229,21 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressCallback as OnBackPressedCallback)
     }
 
-    private fun showCreateFileDialog() {
+    private fun showCreateFileFolderDialog(itemType: Int) {
         val dialog = CreateFileFolderDialog(requireActivity())
         dialog.apply {
-            setTitle("Create file")
-            setHint("Enter file name")
-            setConfirmAction {
-                dismiss()
+            if (itemType == FILE_TYPE) {
+                setTitle(getString(me.safarov399.common.R.string.create_file))
+                setHint(getString(me.safarov399.common.R.string.enter_file_name))
+                setConfirmAction {
+                    dismiss()
+                }
+            } else {
+                setTitle(getString(me.safarov399.common.R.string.create_folder))
+                setHint(getString(me.safarov399.common.R.string.enter_folder_name))
+                setConfirmAction {
+                    dismiss()
+                }
             }
             setCancelAction {
                 dismiss()
@@ -348,4 +359,5 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         fileFolderAdapter = null
         backPressCallback = null
     }
+
 }

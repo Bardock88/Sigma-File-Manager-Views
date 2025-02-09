@@ -26,7 +26,7 @@
             android:id="@+id/cff_ok_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="OK"
+            android:text="@string/ok"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/cff_name_tv" />
 
@@ -34,7 +34,7 @@
             android:id="@+id/cff_cancel_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cancel"
+            android:text="@string/cancel"
             app:layout_constraintEnd_toStartOf="@id/cff_ok_btn"
             app:layout_constraintTop_toTopOf="@id/cff_ok_btn" />
     </androidx.constraintlayout.widget.ConstraintLayout>
