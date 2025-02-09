@@ -70,8 +70,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private val requestAndroid11AndHigherPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { _ ->
-        val isPermissionGranted = Environment.isExternalStorageManager()
-        if (!isPermissionGranted) {
+        if (!Environment.isExternalStorageManager()) {
             showPermissionRequestDialog()
         }
     }
@@ -168,22 +167,29 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         rv = binding.homeRv
         fileFolderAdapter = FileFolderAdapter()
         rv?.adapter = fileFolderAdapter
-
-        binding.pathTv.text = DEFAULT_DIRECTORY
-
         hideFab()
-        binding.homeCreateEfab.setOnClickListener {
-            if (areAllFabVisible) {
-                hideFab()
-            } else {
-                showFab()
+
+        binding.apply {
+            homeCreateFileFab.imageTintList = null
+            homeCreateFolderFab.imageTintList = null
+
+            pathTv.text = DEFAULT_DIRECTORY
+
+            homeCreateEfab.setOnClickListener {
+                if (areAllFabVisible) {
+                    hideFab()
+                } else {
+                    showFab()
+                }
             }
-        }
-        binding.homeCreateFolderFab.setOnClickListener {
-            showCreateFileFolderDialog(FOLDER_TYPE)
-        }
-        binding.homeCreateFileFab.setOnClickListener {
-            showCreateFileFolderDialog(FILE_TYPE)
+
+            homeCreateFolderFab.setOnClickListener {
+                showCreateFileFolderDialog(FOLDER_TYPE)
+            }
+
+            homeCreateFileFab.setOnClickListener {
+                showCreateFileFolderDialog(FILE_TYPE)
+            }
         }
     }
 
@@ -230,8 +236,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     }
 
     private fun showCreateFileFolderDialog(itemType: Int) {
-        val dialog = CreateFileFolderDialog(requireActivity())
-        dialog.apply {
+        CreateFileFolderDialog(requireActivity()).apply {
             if (itemType == FILE_TYPE) {
                 setTitle(getString(me.safarov399.common.R.string.create_file))
                 setHint(getString(me.safarov399.common.R.string.enter_file_name))
@@ -253,16 +258,17 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     }
 
     private fun showPermissionRequestDialog() {
-        val dialog = PermissionDialog(requireActivity())
-        dialog.setTitle(getString(me.safarov399.common.R.string.permission_dialog_title))
-        dialog.setDescription(getString(me.safarov399.common.R.string.permission_dialog_description))
-        dialog.setConfirmButtonText(getString(me.safarov399.common.R.string.ok))
-        dialog.setCancelButtonText(getString(me.safarov399.common.R.string.cancel))
-        dialog.setConfirmationOnClickListener {
-            dialog.dismiss()
-            requestStoragePermission()
+        PermissionDialog(requireActivity()).apply {
+            setTitle(getString(me.safarov399.common.R.string.permission_dialog_title))
+            setDescription(getString(me.safarov399.common.R.string.permission_dialog_description))
+            setConfirmButtonText(getString(me.safarov399.common.R.string.ok))
+            setCancelButtonText(getString(me.safarov399.common.R.string.cancel))
+            setConfirmationOnClickListener {
+                dismiss()
+                requestStoragePermission()
+            }
+            show()
         }
-        dialog.show()
     }
 
 
@@ -301,20 +307,21 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
 
     private fun goToSettingsDialog() {
-        val dialog = PermissionDialog(requireActivity())
-        dialog.setTitle(getString(me.safarov399.common.R.string.not_granted_title))
-        dialog.setDescription(getString(me.safarov399.common.R.string.not_granted_description))
-        dialog.setConfirmButtonText(getString(me.safarov399.common.R.string.not_granted_confirm))
-        dialog.setCancelButtonText(getString(me.safarov399.common.R.string.not_granted_cancel))
-        dialog.setConfirmationOnClickListener {
-            val intent = Intent(
-                Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().packageName)
-            )
-            startActivity(intent)
-            dialog.dismiss()
-            activity?.finish()
+        PermissionDialog(requireActivity()).apply {
+            setTitle(getString(me.safarov399.common.R.string.not_granted_title))
+            setDescription(getString(me.safarov399.common.R.string.not_granted_description))
+            setConfirmButtonText(getString(me.safarov399.common.R.string.not_granted_confirm))
+            setCancelButtonText(getString(me.safarov399.common.R.string.not_granted_cancel))
+            setConfirmationOnClickListener {
+                val intent = Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().packageName)
+                )
+                startActivity(intent)
+                dismiss()
+                activity?.finish()
+            }
+            show()
         }
-        dialog.show()
     }
 
     private fun requestStoragePermission() {
