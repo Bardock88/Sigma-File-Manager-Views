@@ -93,6 +93,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
+    override fun onEffectUpdate(effect: HomeEffect) {
+        when (effect) {
+            HomeEffect.FileAlreadyExists -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_already_exists), Toast.LENGTH_SHORT).show()
+            is HomeEffect.FileCreated -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_created, effect.name, effect.path), Toast.LENGTH_LONG).show()
+            HomeEffect.FolderAlreadyExists -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_already_exists), Toast.LENGTH_SHORT).show()
+            is HomeEffect.FolderCreated -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_created, effect.name, effect.path), Toast.LENGTH_LONG).show()
+        }
+    }
+
     override fun onStateUpdate(state: HomeUiState) {
         currentPath = state.currentPath
         backPressCallback?.isEnabled = currentPath != DEFAULT_DIRECTORY
@@ -240,28 +249,40 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private fun showCreateFileFolderDialog(itemType: Int) {
         CreateFileFolderDialog(requireActivity()).apply {
             if (itemType == FILE_TYPE) {
-                setTitle(getString(me.safarov399.common.R.string.create_file))
+                setTitle(getString(me.safarov399.common.R.string.create_new_file))
                 setHint(getString(me.safarov399.common.R.string.enter_file_name))
                 setConfirmAction {
                     val fileToCreate = findViewById<TextInputEditText>(me.safarov399.uikit.R.id.cff_name_tiet).text.toString()
-                    if(fileToCreate.isNotBlank()) {
-                        postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FILE_TYPE))
-                        dismiss()
-                    } else {
-                        Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_name_must_not_empty), Toast.LENGTH_SHORT).show()
-                    }
+                    postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FILE_TYPE))
+                    dismiss()
+
+                    /**
+                     * The commented out code below is a safe-guard mechanism to prevent users from creating files with only spaces or newlines. However, since it has a possibility of not being optimal for some power users (for whatever reason), I am not going to implement it at the moment. Yet, for the sake of someone who may not like such behaviour and want to turn it on but does not want to construct the logic to do so, just comment out the last two lines and uncomment the code below. I will create a toggle in settings screen to switch this behaviour on and off later on.
+                     */
+//                    if (fileToCreate.isNotBlank()) {
+//                        postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FILE_TYPE))
+//                        dismiss()
+//                    } else {
+//                        Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_name_must_not_empty), Toast.LENGTH_SHORT).show()
+//                    }
                 }
             } else {
-                setTitle(getString(me.safarov399.common.R.string.create_folder))
+                setTitle(getString(me.safarov399.common.R.string.create_new_folder))
                 setHint(getString(me.safarov399.common.R.string.enter_folder_name))
                 setConfirmAction {
                     val fileToCreate = findViewById<TextInputEditText>(me.safarov399.uikit.R.id.cff_name_tiet).text.toString()
-                    if(fileToCreate.isNotBlank()) {
-                        postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FOLDER_TYPE))
-                        dismiss()
-                    } else {
-                        Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_name_must_not_empty), Toast.LENGTH_SHORT).show()
-                    }
+                    postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FOLDER_TYPE))
+                    dismiss()
+
+                    /**
+                     * The commented out code below is a safe-guard mechanism to prevent users from creating folders with only spaces or newlines. However, since it has a possibility of not being optimal for some power users (for whatever reason), I am not going to implement it at the moment. Yet, for the sake of someone who may not like such behaviour and want to turn it on but does not want to construct the logic to do so, just comment out the last two lines and uncomment the code below. I will create a toggle in settings screen to switch this behaviour on and off later on.
+                     */
+//                    if (fileToCreate.isNotBlank()) {
+//                        postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FOLDER_TYPE))
+//                        dismiss()
+//                    } else {
+//                        Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_name_must_not_empty), Toast.LENGTH_SHORT).show()
+//                    }
                 }
             }
             setCancelAction {
@@ -380,5 +401,4 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         fileFolderAdapter = null
         backPressCallback = null
     }
-
 }

@@ -21,12 +21,16 @@
     <string name="not_granted_cancel">Exit the app</string>
     <string name="empty">Empty</string>
 
-    <string name="create_file">Create a new file</string>
+    <string name="create_new_file">Create a new file</string>
     <string name="enter_file_name">Enter file name</string>
-    <string name="create_folder">Create a new folder</string>
+    <string name="create_new_folder">Create a new folder</string>
     <string name="enter_folder_name">Enter folder name</string>
-
+    <string name="create_file">Create file</string>
+    <string name="create_folder">Create folder</string>
+    <string name="file_already_exists">File already exists.</string>
+    <string name="folder_already_exists">Folder already exists.</string>
+    <string name="file_created">File %1$s is created at the path %2$s</string>
+    <string name="folder_created">Folder %1$s is created at the path %2$s</string>
     <string name="file_name_must_not_empty">File name must not be empty.</string>
     <string name="folder_name_must_not_empty">Folder name must not be empty.</string>
-
 </resources>

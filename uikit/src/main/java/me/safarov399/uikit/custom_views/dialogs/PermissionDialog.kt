@@ -7,16 +7,16 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.Window
-import me.safarov399.uikit.databinding.SigmaDialogBinding
+import me.safarov399.uikit.databinding.PermissionDialogBinding
 
 class PermissionDialog(ctx: Context): Dialog(ctx) {
-    private val binding: SigmaDialogBinding
+    private val binding: PermissionDialogBinding
 
     init {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         setCancelable(false)
         window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        binding = SigmaDialogBinding.inflate(LayoutInflater.from(context))
+        binding = PermissionDialogBinding.inflate(LayoutInflater.from(context))
         binding.permissionDialogCancelBtn.setOnClickListener {
             (ctx as Activity).finish()
         }

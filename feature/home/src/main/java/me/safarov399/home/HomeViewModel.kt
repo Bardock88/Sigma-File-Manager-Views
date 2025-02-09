@@ -40,17 +40,32 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
         }
     }
 
+
     private fun createFileFolder(name: String, path: String, type: Int) {
+        /**
+         * Trimming a file or folder name by default may not be suitable for some power users (for whatever reason). That is why, this line is going to be commented out for the time being. I will create a toggle in settings screen to control this behaviour (users will still be able to achieve the original behaviour). For the time being, the user is free to add as many spaces and newlines without them being removed from the file or folder name.
+         */
+//        name = name.trim()
         val file = File(path, name)
-        if(type == FILE_TYPE) {
+        if (type == FILE_TYPE) {
             if ("/" in name) {
                 val parentPath = name.substringBeforeLast("/")
                 val parentDirectory = File(path, parentPath)
                 parentDirectory.mkdirs()    // Creates the parent directory before trying to create the file
             }
-            file.createNewFile()
+            val fileCreated = file.createNewFile()
+            if (!fileCreated) {
+                postEffect(HomeEffect.FileAlreadyExists)
+            } else {
+                postEffect(HomeEffect.FileCreated(name, path))
+            }
         } else {
-            file.mkdirs()
+            val folderCreated = file.mkdirs()
+            if (!folderCreated) {
+                postEffect(HomeEffect.FolderAlreadyExists)
+            } else {
+                postEffect(HomeEffect.FolderCreated(name, path))
+            }
         }
     }
 
