@@ -9,7 +9,7 @@ import android.view.LayoutInflater
 import android.view.Window
 import me.safarov399.uikit.databinding.SigmaDialogBinding
 
-class SigmaDialog(ctx: Context): Dialog(ctx) {
+class PermissionDialog(ctx: Context): Dialog(ctx) {
     private val binding: SigmaDialogBinding
 
     init {

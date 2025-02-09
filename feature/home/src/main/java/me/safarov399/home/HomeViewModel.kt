@@ -3,6 +3,7 @@ package me.safarov399.home
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import me.safarov399.common.MiscellaneousConstants.FILE_TYPE
 import me.safarov399.core.base.BaseViewModel
 import me.safarov399.core.storage.StorageConstants.DANGEROUS_DIRECTORIES
 import me.safarov399.core.storage.StorageConstants.DATA_DIRECTORY
@@ -25,6 +26,31 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
                     )
                 )
             }
+
+            is HomeEvent.CreateObject -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    createFileFolder(event.name, event.path, event.type)
+                    setState(
+                        getCurrentState().copy(
+                            currentFileFolders = readStorage(event.path)
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun createFileFolder(name: String, path: String, type: Int) {
+        val file = File(path, name)
+        if(type == FILE_TYPE) {
+            if ("/" in name) {
+                val parentPath = name.substringBeforeLast("/")
+                val parentDirectory = File(path, parentPath)
+                parentDirectory.mkdirs()    // Creates the parent directory before trying to create the file
+            }
+            file.createNewFile()
+        } else {
+            file.mkdirs()
         }
     }
 
@@ -49,8 +75,8 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
             }
         }
 
-        onlyFiles.sortBy { it.name }
-        onlyFolders.sortBy { it.name }
+        onlyFiles.sortBy { it.name.lowercase() }
+        onlyFolders.sortBy { it.name.lowercase() }
         return (onlyFolders + onlyFiles)
     }
 

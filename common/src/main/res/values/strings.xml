@@ -21,4 +21,12 @@
     <string name="not_granted_cancel">Exit the app</string>
     <string name="empty">Empty</string>
 
+    <string name="create_file">Create a new file</string>
+    <string name="enter_file_name">Enter file name</string>
+    <string name="create_folder">Create a new folder</string>
+    <string name="enter_folder_name">Enter folder name</string>
+
+    <string name="file_name_must_not_empty">File name must not be empty.</string>
+    <string name="folder_name_must_not_empty">Folder name must not be empty.</string>
+
 </resources>
