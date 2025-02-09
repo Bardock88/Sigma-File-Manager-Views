@@ -12,7 +12,6 @@ import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
 import java.io.File
-import java.io.FileWriter
 
 
 class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
@@ -71,8 +70,8 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
             }
         }
 
-        onlyFiles.sortBy { it.name }
-        onlyFolders.sortBy { it.name }
+        onlyFiles.sortBy { it.name.lowercase() }
+        onlyFolders.sortBy { it.name.lowercase() }
         return (onlyFolders + onlyFiles)
     }
 
