@@ -22,7 +22,7 @@ class CreateFileFolderDialog(ctx: Context): Dialog(ctx) {
         binding.cffTitleTv.text = title
     }
     fun setHint(hint: String) {
-        binding.cffNameTv.hint = hint
+        binding.cffNameTiet.hint = hint
     }
     fun setConfirmAction(onClick: () -> Unit) {
         binding.cffOkBtn.setOnClickListener {
