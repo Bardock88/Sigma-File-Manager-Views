@@ -14,13 +14,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
+import me.safarov399.common.MiscellaneousConstants.FILE_TYPE
+import me.safarov399.common.MiscellaneousConstants.FOLDER_TYPE
 import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.adapter.OnClickListener
@@ -31,7 +35,8 @@ import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.home.databinding.FragmentHomeBinding
-import me.safarov399.uikit.custom_views.dialogs.SigmaDialog
+import me.safarov399.uikit.custom_views.dialogs.CreateFileFolderDialog
+import me.safarov399.uikit.custom_views.dialogs.PermissionDialog
 import java.io.File
 
 
@@ -45,6 +50,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var currentPath = DEFAULT_DIRECTORY
 
     private var isClickable = true
+    private var areAllFabVisible = false
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -66,8 +72,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private val requestAndroid11AndHigherPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { _ ->
-        val isPermissionGranted = Environment.isExternalStorageManager()
-        if (!isPermissionGranted) {
+        if (!Environment.isExternalStorageManager()) {
             showPermissionRequestDialog()
         }
     }
@@ -88,6 +93,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
+    override fun onEffectUpdate(effect: HomeEffect) {
+        when (effect) {
+            HomeEffect.FileAlreadyExists -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_already_exists), Toast.LENGTH_SHORT).show()
+            is HomeEffect.FileCreated -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_created, effect.name, effect.path), Toast.LENGTH_LONG).show()
+            HomeEffect.FolderAlreadyExists -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_already_exists), Toast.LENGTH_SHORT).show()
+            is HomeEffect.FolderCreated -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_created, effect.name, effect.path), Toast.LENGTH_LONG).show()
+        }
+    }
+
     override fun onStateUpdate(state: HomeUiState) {
         currentPath = state.currentPath
         backPressCallback?.isEnabled = currentPath != DEFAULT_DIRECTORY
@@ -95,6 +109,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
         fileFolderAdapter?.setOnClickListener(object : OnClickListener {
             override fun onClick(position: Int, model: FileFolderModel) {
+                hideFab()
+
                 if (!isClickable) return // Ignore clicks if interaction is disabled
                 isClickable = false
 
@@ -116,6 +132,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             }
         }, object : OnClickListener {
             override fun onClick(position: Int, model: FileFolderModel) {
+                hideFab()
+
                 if (!isClickable) return // Ignore clicks if interaction is disabled
                 isClickable = false
 
@@ -144,6 +162,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
         binding.homeNavUp.setOnClickListener {
             if (state.currentPath != DEFAULT_DIRECTORY) {
+                hideFab()
                 val nextPath = state.currentPath.substringBeforeLast("/")
                 postEvent(
                     HomeEvent.ChangePath(
@@ -159,7 +178,52 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         rv = binding.homeRv
         fileFolderAdapter = FileFolderAdapter()
         rv?.adapter = fileFolderAdapter
-        binding.pathTv.text = DEFAULT_DIRECTORY
+        hideFab()
+
+        binding.apply {
+            homeCreateFileFab.imageTintList = null
+            homeCreateFolderFab.imageTintList = null
+
+            pathTv.text = DEFAULT_DIRECTORY
+
+            homeCreateEfab.setOnClickListener {
+                if (areAllFabVisible) {
+                    hideFab()
+                } else {
+                    showFab()
+                }
+            }
+
+            homeCreateFolderFab.setOnClickListener {
+                showCreateFileFolderDialog(FOLDER_TYPE)
+            }
+
+            homeCreateFileFab.setOnClickListener {
+                showCreateFileFolderDialog(FILE_TYPE)
+            }
+        }
+    }
+
+    private fun hideFab() {
+        binding.apply {
+            homeCreateFileFab.hide()
+            homeCreateFolderFab.hide()
+            homeCreateFolderTv.visibility = View.GONE
+            homeCreateFileTv.visibility = View.GONE
+            homeCreateEfab.shrink()
+        }
+        areAllFabVisible = false
+    }
+
+    private fun showFab() {
+        binding.apply {
+            homeCreateFileFab.show()
+            homeCreateFolderFab.show()
+            homeCreateFolderTv.visibility = View.VISIBLE
+            homeCreateFileTv.visibility = View.VISIBLE
+            homeCreateEfab.extend()
+        }
+        areAllFabVisible = true
     }
 
 
@@ -182,17 +246,64 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressCallback as OnBackPressedCallback)
     }
 
-    private fun showPermissionRequestDialog() {
-        val dialog = SigmaDialog(requireActivity())
-        dialog.setTitle(getString(me.safarov399.common.R.string.permission_dialog_title))
-        dialog.setDescription(getString(me.safarov399.common.R.string.permission_dialog_description))
-        dialog.setConfirmButtonText(getString(me.safarov399.common.R.string.ok))
-        dialog.setCancelButtonText(getString(me.safarov399.common.R.string.cancel))
-        dialog.setConfirmationOnClickListener {
-            dialog.dismiss()
-            requestStoragePermission()
+    private fun showCreateFileFolderDialog(itemType: Int) {
+        CreateFileFolderDialog(requireActivity()).apply {
+            if (itemType == FILE_TYPE) {
+                setTitle(getString(me.safarov399.common.R.string.create_new_file))
+                setHint(getString(me.safarov399.common.R.string.enter_file_name))
+                setConfirmAction {
+                    val fileToCreate = findViewById<TextInputEditText>(me.safarov399.uikit.R.id.cff_name_tiet).text.toString()
+                    postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FILE_TYPE))
+                    dismiss()
+
+                    /**
+                     * The commented out code below is a safe-guard mechanism to prevent users from creating files with only spaces or newlines. However, since it has a possibility of not being optimal for some power users (for whatever reason), I am not going to implement it at the moment. Yet, for the sake of someone who may not like such behaviour and want to turn it on but does not want to construct the logic to do so, just comment out the last two lines and uncomment the code below. I will create a toggle in settings screen to switch this behaviour on and off later on.
+                     */
+//                    if (fileToCreate.isNotBlank()) {
+//                        postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FILE_TYPE))
+//                        dismiss()
+//                    } else {
+//                        Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_name_must_not_empty), Toast.LENGTH_SHORT).show()
+//                    }
+                }
+            } else {
+                setTitle(getString(me.safarov399.common.R.string.create_new_folder))
+                setHint(getString(me.safarov399.common.R.string.enter_folder_name))
+                setConfirmAction {
+                    val fileToCreate = findViewById<TextInputEditText>(me.safarov399.uikit.R.id.cff_name_tiet).text.toString()
+                    postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FOLDER_TYPE))
+                    dismiss()
+
+                    /**
+                     * The commented out code below is a safe-guard mechanism to prevent users from creating folders with only spaces or newlines. However, since it has a possibility of not being optimal for some power users (for whatever reason), I am not going to implement it at the moment. Yet, for the sake of someone who may not like such behaviour and want to turn it on but does not want to construct the logic to do so, just comment out the last two lines and uncomment the code below. I will create a toggle in settings screen to switch this behaviour on and off later on.
+                     */
+//                    if (fileToCreate.isNotBlank()) {
+//                        postEvent(HomeEvent.CreateObject(fileToCreate, currentPath, FOLDER_TYPE))
+//                        dismiss()
+//                    } else {
+//                        Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_name_must_not_empty), Toast.LENGTH_SHORT).show()
+//                    }
+                }
+            }
+            setCancelAction {
+                dismiss()
+            }
+            show()
         }
-        dialog.show()
+    }
+
+    private fun showPermissionRequestDialog() {
+        PermissionDialog(requireActivity()).apply {
+            setTitle(getString(me.safarov399.common.R.string.permission_dialog_title))
+            setDescription(getString(me.safarov399.common.R.string.permission_dialog_description))
+            setConfirmButtonText(getString(me.safarov399.common.R.string.ok))
+            setCancelButtonText(getString(me.safarov399.common.R.string.cancel))
+            setConfirmationOnClickListener {
+                dismiss()
+                requestStoragePermission()
+            }
+            show()
+        }
     }
 
 
@@ -231,20 +342,21 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
 
     private fun goToSettingsDialog() {
-        val dialog = SigmaDialog(requireActivity())
-        dialog.setTitle(getString(me.safarov399.common.R.string.not_granted_title))
-        dialog.setDescription(getString(me.safarov399.common.R.string.not_granted_description))
-        dialog.setConfirmButtonText(getString(me.safarov399.common.R.string.not_granted_confirm))
-        dialog.setCancelButtonText(getString(me.safarov399.common.R.string.not_granted_cancel))
-        dialog.setConfirmationOnClickListener {
-            val intent = Intent(
-                Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().packageName)
-            )
-            startActivity(intent)
-            dialog.dismiss()
-            activity?.finish()
+        PermissionDialog(requireActivity()).apply {
+            setTitle(getString(me.safarov399.common.R.string.not_granted_title))
+            setDescription(getString(me.safarov399.common.R.string.not_granted_description))
+            setConfirmButtonText(getString(me.safarov399.common.R.string.not_granted_confirm))
+            setCancelButtonText(getString(me.safarov399.common.R.string.not_granted_cancel))
+            setConfirmationOnClickListener {
+                val intent = Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().packageName)
+                )
+                startActivity(intent)
+                dismiss()
+                activity?.finish()
+            }
+            show()
         }
-        dialog.show()
     }
 
     private fun requestStoragePermission() {

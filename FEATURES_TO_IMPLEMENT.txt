@@ -95,6 +95,6 @@ File Metadata Editing and Viewing:
 • For lengthy operations (copying large directories, moving files, etc.), background processing with progress bars and cancellation options.
 • Built-In File Encryption/Decryption: Allow users to encrypt and decrypt files within the app.
 • Dual-Pane Mode / Multi-Window Support: Allow users to view two directories side by side (or in a split-screen layout).
-
+• Add Timsort support and optimize space complexity within the readStorage function by merging both folders and files into a single list and then sorting it.
 
 Disclaimer: This file may change and some of the features may not be implemented at all. Added features will be removed from this file.

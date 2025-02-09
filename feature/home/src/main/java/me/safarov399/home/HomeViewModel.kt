@@ -3,6 +3,7 @@ package me.safarov399.home
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import me.safarov399.common.MiscellaneousConstants.FILE_TYPE
 import me.safarov399.core.base.BaseViewModel
 import me.safarov399.core.storage.StorageConstants.DANGEROUS_DIRECTORIES
 import me.safarov399.core.storage.StorageConstants.DATA_DIRECTORY
@@ -24,6 +25,46 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
                         currentFileFolders = readStorage(event.newPath)
                     )
                 )
+            }
+
+            is HomeEvent.CreateObject -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    createFileFolder(event.name, event.path, event.type)
+                    setState(
+                        getCurrentState().copy(
+                            currentFileFolders = readStorage(event.path)
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+
+    private fun createFileFolder(name: String, path: String, type: Int) {
+        /**
+         * Trimming a file or folder name by default may not be suitable for some power users (for whatever reason). That is why, this line is going to be commented out for the time being. I will create a toggle in settings screen to control this behaviour (users will still be able to achieve the original behaviour). For the time being, the user is free to add as many spaces and newlines without them being removed from the file or folder name.
+         */
+//        name = name.trim()
+        val file = File(path, name)
+        if (type == FILE_TYPE) {
+            if ("/" in name) {
+                val parentPath = name.substringBeforeLast("/")
+                val parentDirectory = File(path, parentPath)
+                parentDirectory.mkdirs()    // Creates the parent directory before trying to create the file
+            }
+            val fileCreated = file.createNewFile()
+            if (!fileCreated) {
+                postEffect(HomeEffect.FileAlreadyExists)
+            } else {
+                postEffect(HomeEffect.FileCreated(name, path))
+            }
+        } else {
+            val folderCreated = file.mkdirs()
+            if (!folderCreated) {
+                postEffect(HomeEffect.FolderAlreadyExists)
+            } else {
+                postEffect(HomeEffect.FolderCreated(name, path))
             }
         }
     }
@@ -49,8 +90,8 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
             }
         }
 
-        onlyFiles.sortBy { it.name }
-        onlyFolders.sortBy { it.name }
+        onlyFiles.sortBy { it.name.lowercase() }
+        onlyFolders.sortBy { it.name.lowercase() }
         return (onlyFolders + onlyFiles)
     }
 
