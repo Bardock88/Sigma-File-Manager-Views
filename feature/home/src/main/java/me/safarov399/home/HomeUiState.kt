@@ -5,5 +5,6 @@ import me.safarov399.domain.models.adapter.FileFolderModel
 
 data class HomeUiState(
     var currentPath: String = DEFAULT_DIRECTORY,
-    var currentFileFolders: List<FileFolderModel> = emptyList()
+    var currentFileFolders: List<FileFolderModel> = emptyList(),
+    var isAscending: Boolean = true
 )
