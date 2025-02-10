@@ -8,11 +8,20 @@ class SortingPreferenceRepositoryImpl @Inject constructor (
     private val encryptedPreferencesManager: EncryptedSharedPreferencesManager
 ) : AbstractSortingPreferenceRepository {
 
-    override fun saveSortingPreference(sortType: Int) {
-        encryptedPreferencesManager.saveSortingPreference(sortType)
+    override fun saveSortTypePreference(sortType: Int) {
+        encryptedPreferencesManager.saveSortTypePreference(sortType)
     }
 
-    override fun getSortingPreference(): Int {
-        return encryptedPreferencesManager.getSortingPreference()
+    override fun getSortTypePreference(): Int {
+        return encryptedPreferencesManager.getSortTypePreference()
     }
+
+    override fun saveSortOrderPreference(sortOrder: Int) {
+        encryptedPreferencesManager.saveSortOrderPreference(sortOrder)
+    }
+
+    override fun getSortOrderPreference(): Int {
+        return encryptedPreferencesManager.getSortOrderPreference()
+    }
+
 }
