@@ -110,7 +110,11 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     override fun onStateUpdate(state: HomeUiState) {
         currentPath = state.currentPath
         backPressCallback?.isEnabled = currentPath != DEFAULT_DIRECTORY
-        fileFolderAdapter?.submitList(state.currentFileFolders)
+        fileFolderAdapter?.submitList(state.currentFileFolders) {
+            rv?.post {
+                rv?.scrollToPosition(0)
+            }
+        }
 
         fileFolderAdapter?.setOnClickListener(object : OnClickListener {
             override fun onClick(position: Int, model: FileFolderModel) {
