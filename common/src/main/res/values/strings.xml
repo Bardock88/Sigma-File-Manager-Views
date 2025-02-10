@@ -33,4 +33,6 @@
     <string name="folder_created">Folder %1$s is created at the path %2$s</string>
     <string name="file_name_must_not_empty">File name must not be empty.</string>
     <string name="folder_name_must_not_empty">Folder name must not be empty.</string>
+
+    <string name="three_dots_sorting_cd">Open sorting pop up.</string>
 </resources>
