@@ -7,4 +7,5 @@ object FileConstants {
     const val NAME_SORTING_TYPE = 2
     const val DATE_SORTING_TYPE = 3
     const val SIZE_SORTING_TYPE = 4
+    const val TYPE_SORTING_TYPE = 5
 }

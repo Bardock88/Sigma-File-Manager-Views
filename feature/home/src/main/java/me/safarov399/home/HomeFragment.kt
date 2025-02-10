@@ -24,8 +24,12 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
+import me.safarov399.common.FileConstants.DATE_SORTING_TYPE
 import me.safarov399.common.FileConstants.FILE_TYPE
 import me.safarov399.common.FileConstants.FOLDER_TYPE
+import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
+import me.safarov399.common.FileConstants.SIZE_SORTING_TYPE
+import me.safarov399.common.FileConstants.TYPE_SORTING_TYPE
 import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.adapter.OnClickListener
@@ -128,6 +132,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 }
                 binding.pathTv.text = state.currentPath
 
+                currentPath = state.currentPath
+
                 // Re-enable interaction after a short delay
                 binding.root.postDelayed({ isClickable = true }, 500)
             }
@@ -215,19 +221,23 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 me.safarov399.common.R.id.sort_name -> {
-                    Toast.makeText(requireActivity(), "Name", Toast.LENGTH_SHORT).show()
+                    postEvent(HomeEvent.ChangeSortingType(NAME_SORTING_TYPE))
+                    postEvent(HomeEvent.ChangePath(currentPath))
                 }
 
                 me.safarov399.common.R.id.sort_date -> {
-                    Toast.makeText(requireActivity(), "Date", Toast.LENGTH_SHORT).show()
+                    postEvent(HomeEvent.ChangeSortingType(DATE_SORTING_TYPE))
+                    postEvent(HomeEvent.ChangePath(currentPath))
                 }
 
                 me.safarov399.common.R.id.sort_size -> {
-                    Toast.makeText(requireActivity(), "Size", Toast.LENGTH_SHORT).show()
+                    postEvent(HomeEvent.ChangeSortingType(SIZE_SORTING_TYPE))
+                    postEvent(HomeEvent.ChangePath(currentPath))
                 }
 
                 me.safarov399.common.R.id.sort_type -> {
-                    Toast.makeText(requireActivity(), "Type", Toast.LENGTH_SHORT).show()
+                    postEvent(HomeEvent.ChangeSortingType(TYPE_SORTING_TYPE))
+                    postEvent(HomeEvent.ChangePath(currentPath))
                 }
             }
             true

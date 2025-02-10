@@ -4,7 +4,11 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import me.safarov399.common.FileConstants.DATE_SORTING_TYPE
 import me.safarov399.common.FileConstants.FILE_TYPE
+import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
+import me.safarov399.common.FileConstants.SIZE_SORTING_TYPE
+import me.safarov399.common.FileConstants.TYPE_SORTING_TYPE
 import me.safarov399.core.base.BaseViewModel
 import me.safarov399.core.storage.StorageConstants.DANGEROUS_DIRECTORIES
 import me.safarov399.core.storage.StorageConstants.DATA_DIRECTORY
@@ -42,11 +46,14 @@ class HomeViewModel @Inject constructor(
                     )
                 }
             }
+
+            is HomeEvent.ChangeSortingType -> saveSortingPreference(event.sortBy)
         }
     }
 
     private fun saveSortingPreference(sortType: Int) {
         sortingPreferenceRepository.saveSortingPreference(sortType)
+
     }
 
     private fun getSortingPreference(): Int {
@@ -82,28 +89,52 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun readStorage(path: String): List<FileFolderModel> {
+        val sortBy = getSortingPreference()
         val externalStorageDirectory = File(path)
         val fileAndFolders = externalStorageDirectory.listFiles()
         val onlyFiles = mutableListOf<FileModel>()
         val onlyFolders = mutableListOf<FolderModel>()
         for (file in fileAndFolders!!) {
             if (file.isFile) {
-                onlyFiles.add(FileModel(name = file.name, size = file.length()))
+                onlyFiles.add(FileModel(name = file.name, size = file.length(), lastModified = file.lastModified()))
             } else {
                 if (path in DANGEROUS_DIRECTORIES) {
                     if (file.name.equals(DATA_DIRECTORY) || file.name.equals(OBB_DIRECTORY)) {
-                        onlyFolders.add(FolderModel(name = file.name, itemCount = -1L))
+                        onlyFolders.add(FolderModel(name = file.name, itemCount = -1L, lastModified = file.lastModified()))
                     } else {
-                        onlyFolders.add(FolderModel(name = file.name, itemCount = file?.listFiles()?.size!!.toLong()))
+                        onlyFolders.add(FolderModel(name = file.name, itemCount = file?.listFiles()?.size!!.toLong(), lastModified = file.lastModified()))
                     }
                 } else {
-                    onlyFolders.add(FolderModel(name = file.name, itemCount = file?.listFiles()?.size!!.toLong()))
+                    onlyFolders.add(FolderModel(name = file.name, itemCount = file?.listFiles()?.size!!.toLong(), lastModified = file.lastModified()))
                 }
             }
         }
+        when (sortBy) {
+            NAME_SORTING_TYPE -> {
+                onlyFiles.sortBy { it.name.lowercase() }
+                onlyFolders.sortBy { it.name.lowercase() }
+            }
 
-        onlyFiles.sortBy { it.name.lowercase() }
-        onlyFolders.sortBy { it.name.lowercase() }
+            DATE_SORTING_TYPE -> {
+                onlyFiles.sortBy { it.lastModified }
+                onlyFolders.sortBy { it.lastModified }
+            }
+
+            SIZE_SORTING_TYPE -> {
+                onlyFiles.sortBy { it.size }
+                onlyFolders.sortBy { it.name.lowercase() }
+            }
+
+            TYPE_SORTING_TYPE -> {
+                onlyFiles.sortBy {
+                    if (it.name.contains(".")) {
+                        it.name.substringAfterLast(".").lowercase()
+                    } else it.name.lowercase()
+                }
+                onlyFolders.sortBy { it.name.lowercase() }
+            }
+        }
+
         return (onlyFolders + onlyFiles)
     }
 
