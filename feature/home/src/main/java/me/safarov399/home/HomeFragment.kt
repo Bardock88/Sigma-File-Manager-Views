@@ -18,6 +18,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
@@ -201,7 +202,37 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             homeCreateFileFab.setOnClickListener {
                 showCreateFileFolderDialog(FILE_TYPE)
             }
+            homeThreeDotsIv.setOnClickListener {
+                showSortingPopup(it)
+            }
         }
+    }
+
+    private fun showSortingPopup(view: View) {
+        val popup = PopupMenu(requireActivity(), view)
+        val popupMenuInflater = popup.menuInflater
+        popupMenuInflater.inflate(me.safarov399.common.R.menu.sort_menu, popup.menu)
+        popup.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                me.safarov399.common.R.id.sort_name -> {
+                    Toast.makeText(requireActivity(), "Name", Toast.LENGTH_SHORT).show()
+                }
+
+                me.safarov399.common.R.id.sort_date -> {
+                    Toast.makeText(requireActivity(), "Date", Toast.LENGTH_SHORT).show()
+                }
+
+                me.safarov399.common.R.id.sort_size -> {
+                    Toast.makeText(requireActivity(), "Size", Toast.LENGTH_SHORT).show()
+                }
+
+                me.safarov399.common.R.id.sort_type -> {
+                    Toast.makeText(requireActivity(), "Type", Toast.LENGTH_SHORT).show()
+                }
+            }
+            true
+        }
+        popup.show()
     }
 
     private fun hideFab() {
