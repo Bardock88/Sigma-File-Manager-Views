@@ -1,9 +1,6 @@
 Upcoming features.
 
 
-• Creation:
-    • Empty file
-    • Empty folder
 • File Operations:
     • Copy
     • Move

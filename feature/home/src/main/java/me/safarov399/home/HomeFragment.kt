@@ -23,8 +23,8 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
-import me.safarov399.common.MiscellaneousConstants.FILE_TYPE
-import me.safarov399.common.MiscellaneousConstants.FOLDER_TYPE
+import me.safarov399.common.FileConstants.FILE_TYPE
+import me.safarov399.common.FileConstants.FOLDER_TYPE
 import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.adapter.OnClickListener
