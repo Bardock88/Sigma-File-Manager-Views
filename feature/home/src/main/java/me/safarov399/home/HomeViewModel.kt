@@ -1,9 +1,10 @@
 package me.safarov399.home
 
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.safarov399.common.MiscellaneousConstants.FILE_TYPE
+import me.safarov399.common.FileConstants.FILE_TYPE
 import me.safarov399.core.base.BaseViewModel
 import me.safarov399.core.storage.StorageConstants.DANGEROUS_DIRECTORIES
 import me.safarov399.core.storage.StorageConstants.DATA_DIRECTORY
@@ -11,10 +12,14 @@ import me.safarov399.core.storage.StorageConstants.OBB_DIRECTORY
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
+import me.safarov399.domain.sorting.AbstractSortingPreferenceRepository
 import java.io.File
+import javax.inject.Inject
 
-
-class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val sortingPreferenceRepository: AbstractSortingPreferenceRepository
+) : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
 
     override fun onEventUpdate(event: HomeEvent) {
         when (event) {
@@ -40,6 +45,13 @@ class HomeViewModel : BaseViewModel<HomeUiState, HomeEffect, HomeEvent>() {
         }
     }
 
+    private fun saveSortingPreference(sortType: Int) {
+        sortingPreferenceRepository.saveSortingPreference(sortType)
+    }
+
+    private fun getSortingPreference(): Int {
+        return sortingPreferenceRepository.getSortingPreference()
+    }
 
     private fun createFileFolder(name: String, path: String, type: Int) {
         /**
