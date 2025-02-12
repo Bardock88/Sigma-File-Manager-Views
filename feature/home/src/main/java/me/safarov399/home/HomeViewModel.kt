@@ -4,7 +4,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import me.safarov399.common.FileConstants.ASCENDING_ORDER
+import me.safarov399.common.FileConstants.DATE_SORTING_TYPE
 import me.safarov399.common.FileConstants.FILE_TYPE
+import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
+import me.safarov399.common.FileConstants.SIZE_SORTING_TYPE
+import me.safarov399.common.FileConstants.TYPE_SORTING_TYPE
 import me.safarov399.core.base.BaseViewModel
 import me.safarov399.core.storage.StorageConstants.DANGEROUS_DIRECTORIES
 import me.safarov399.core.storage.StorageConstants.DATA_DIRECTORY
@@ -27,7 +32,7 @@ class HomeViewModel @Inject constructor(
                 setState(
                     getCurrentState().copy(
                         currentPath = event.newPath,
-                        currentFileFolders = readStorage(event.newPath)
+                        currentFileFolders = readStorage(event.newPath),
                     )
                 )
             }
@@ -42,15 +47,41 @@ class HomeViewModel @Inject constructor(
                     )
                 }
             }
+
+            is HomeEvent.ChangeSortType -> {
+                saveSortType(event.sortBy)
+                setState(
+                    getCurrentState().copy(
+                        sortType = event.sortBy
+                    )
+                )
+            }
+
+            is HomeEvent.ChangeSortOrder -> {
+                saveSortOrder(event.sortOrder)
+                setState(
+                    getCurrentState().copy(
+                        isAscending = event.sortOrder == ASCENDING_ORDER,
+                    )
+                )
+            }
         }
     }
 
-    private fun saveSortingPreference(sortType: Int) {
-        sortingPreferenceRepository.saveSortingPreference(sortType)
+    private fun saveSortType(sortType: Int) {
+        sortingPreferenceRepository.saveSortTypePreference(sortType)
     }
 
-    private fun getSortingPreference(): Int {
-        return sortingPreferenceRepository.getSortingPreference()
+    private fun getSortType(): Int {
+        return sortingPreferenceRepository.getSortTypePreference()
+    }
+
+    private fun saveSortOrder(sortOrder: Int) {
+        sortingPreferenceRepository.saveSortOrderPreference(sortOrder)
+    }
+
+    private fun getSortOrder(): Int {
+        return sortingPreferenceRepository.getSortOrderPreference()
     }
 
     private fun createFileFolder(name: String, path: String, type: Int) {
@@ -82,28 +113,81 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun readStorage(path: String): List<FileFolderModel> {
+        val sortType = getSortType()
+        val sortOrder = getSortOrder()
         val externalStorageDirectory = File(path)
         val fileAndFolders = externalStorageDirectory.listFiles()
         val onlyFiles = mutableListOf<FileModel>()
         val onlyFolders = mutableListOf<FolderModel>()
         for (file in fileAndFolders!!) {
             if (file.isFile) {
-                onlyFiles.add(FileModel(name = file.name, size = file.length()))
+                onlyFiles.add(FileModel(name = file.name, size = file.length(), lastModified = file.lastModified()))
             } else {
                 if (path in DANGEROUS_DIRECTORIES) {
                     if (file.name.equals(DATA_DIRECTORY) || file.name.equals(OBB_DIRECTORY)) {
-                        onlyFolders.add(FolderModel(name = file.name, itemCount = -1L))
+                        onlyFolders.add(FolderModel(name = file.name, itemCount = -1L, lastModified = file.lastModified()))
                     } else {
-                        onlyFolders.add(FolderModel(name = file.name, itemCount = file?.listFiles()?.size!!.toLong()))
+                        onlyFolders.add(FolderModel(name = file.name, itemCount = file?.listFiles()?.size!!.toLong(), lastModified = file.lastModified()))
                     }
                 } else {
-                    onlyFolders.add(FolderModel(name = file.name, itemCount = file?.listFiles()?.size!!.toLong()))
+                    onlyFolders.add(FolderModel(name = file.name, itemCount = file?.listFiles()?.size!!.toLong(), lastModified = file.lastModified()))
                 }
             }
         }
 
-        onlyFiles.sortBy { it.name.lowercase() }
-        onlyFolders.sortBy { it.name.lowercase() }
+        if (sortOrder == ASCENDING_ORDER) {
+            when (sortType) {
+                NAME_SORTING_TYPE -> {
+                    onlyFiles.sortBy { it.name.lowercase() }
+                    onlyFolders.sortBy { it.name.lowercase() }
+                }
+
+                DATE_SORTING_TYPE -> {
+                    onlyFiles.sortBy { it.lastModified }
+                    onlyFolders.sortBy { it.lastModified }
+                }
+
+                SIZE_SORTING_TYPE -> {
+                    onlyFiles.sortBy { it.size }
+                    onlyFolders.sortBy { it.name.lowercase() }
+                }
+
+                TYPE_SORTING_TYPE -> {
+                    onlyFiles.sortBy {
+                        if (it.name.contains(".")) {
+                            it.name.substringAfterLast(".").lowercase()
+                        } else it.name.lowercase()
+                    }
+                    onlyFolders.sortBy { it.name.lowercase() }
+                }
+            }
+        } else {
+            when (sortType) {
+                NAME_SORTING_TYPE -> {
+                    onlyFiles.sortByDescending { it.name.lowercase() }
+                    onlyFolders.sortByDescending { it.name.lowercase() }
+                }
+
+                DATE_SORTING_TYPE -> {
+                    onlyFiles.sortByDescending { it.lastModified }
+                    onlyFolders.sortByDescending { it.lastModified }
+                }
+
+                SIZE_SORTING_TYPE -> {
+                    onlyFiles.sortByDescending { it.size }
+                    onlyFolders.sortBy { it.name.lowercase() }
+                }
+
+                TYPE_SORTING_TYPE -> {
+                    onlyFiles.sortByDescending {
+                        if (it.name.contains(".")) {
+                            it.name.substringAfterLast(".").lowercase()
+                        } else it.name.lowercase()
+                    }
+                    onlyFolders.sortBy { it.name.lowercase() }
+                }
+            }
+        }
         return (onlyFolders + onlyFiles)
     }
 

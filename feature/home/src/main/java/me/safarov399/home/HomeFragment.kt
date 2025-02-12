@@ -18,13 +18,20 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
+import me.safarov399.common.FileConstants.ASCENDING_ORDER
+import me.safarov399.common.FileConstants.DATE_SORTING_TYPE
+import me.safarov399.common.FileConstants.DESCENDING_ORDER
 import me.safarov399.common.FileConstants.FILE_TYPE
 import me.safarov399.common.FileConstants.FOLDER_TYPE
+import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
+import me.safarov399.common.FileConstants.SIZE_SORTING_TYPE
+import me.safarov399.common.FileConstants.TYPE_SORTING_TYPE
 import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.adapter.OnClickListener
@@ -51,6 +58,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
     private var isClickable = true
     private var areAllFabVisible = false
+    private var isAscending = true
+    private var sortType: Int = NAME_SORTING_TYPE
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -89,6 +98,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     override fun onResume() {
         super.onResume()
         if (checkStoragePermissions()) {
+            postEvent(HomeEvent.ChangeSortOrder(ASCENDING_ORDER))
+            postEvent(HomeEvent.ChangeSortType(NAME_SORTING_TYPE))
             postEvent(HomeEvent.ChangePath(currentPath))
         }
     }
@@ -104,8 +115,14 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
     override fun onStateUpdate(state: HomeUiState) {
         currentPath = state.currentPath
+        sortType = state.sortType
         backPressCallback?.isEnabled = currentPath != DEFAULT_DIRECTORY
-        fileFolderAdapter?.submitList(state.currentFileFolders)
+        fileFolderAdapter?.submitList(state.currentFileFolders) {
+            rv?.post {
+                rv?.scrollToPosition(0)
+            }
+        }
+        isAscending = state.isAscending
 
         fileFolderAdapter?.setOnClickListener(object : OnClickListener {
             override fun onClick(position: Int, model: FileFolderModel) {
@@ -126,6 +143,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                     state.currentPath = temporaryCurrentPath
                 }
                 binding.pathTv.text = state.currentPath
+
+                currentPath = state.currentPath
 
                 // Re-enable interaction after a short delay
                 binding.root.postDelayed({ isClickable = true }, 500)
@@ -201,7 +220,112 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             homeCreateFileFab.setOnClickListener {
                 showCreateFileFolderDialog(FILE_TYPE)
             }
+            homeThreeDotsIv.setOnClickListener {
+                showSortingPopup(it)
+            }
         }
+    }
+
+    private fun configureSortType(sortType: Int, popup: PopupMenu) {
+        when (sortType) {
+            NAME_SORTING_TYPE -> {
+                popup.menu.apply {
+                    findItem(me.safarov399.common.R.id.sort_name).isChecked = true
+                    findItem(me.safarov399.common.R.id.sort_date).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_size).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_type).isChecked = false
+                }
+            }
+
+            DATE_SORTING_TYPE -> {
+                popup.menu.apply {
+                    findItem(me.safarov399.common.R.id.sort_name).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_date).isChecked = true
+                    findItem(me.safarov399.common.R.id.sort_size).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_type).isChecked = false
+                }
+            }
+
+            SIZE_SORTING_TYPE -> {
+                popup.menu.apply {
+                    findItem(me.safarov399.common.R.id.sort_name).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_date).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_size).isChecked = true
+                    findItem(me.safarov399.common.R.id.sort_type).isChecked = false
+                }
+            }
+
+            TYPE_SORTING_TYPE -> {
+                popup.menu.apply {
+                    findItem(me.safarov399.common.R.id.sort_name).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_date).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_size).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_type).isChecked = true
+                }
+            }
+        }
+    }
+
+    private fun configureSortOrder(isAscending: Boolean, popup: PopupMenu) {
+        popup.menu.apply {
+            findItem(me.safarov399.common.R.id.sort_ascending).isChecked = isAscending
+            findItem(me.safarov399.common.R.id.sort_descending).isChecked = !isAscending
+        }
+    }
+
+    private fun showSortingPopup(view: View) {
+        val popup = PopupMenu(requireActivity(), view)
+        val popupMenuInflater = popup.menuInflater
+        popupMenuInflater.inflate(me.safarov399.common.R.menu.sort_menu, popup.menu)
+        configureSortOrder(isAscending, popup)
+        configureSortType(sortType, popup)
+        popup.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                me.safarov399.common.R.id.sort_name -> {
+                    sortType = NAME_SORTING_TYPE
+                    configureSortType(sortType, popup)
+                    postEvent(HomeEvent.ChangeSortType(sortType))
+                    postEvent(HomeEvent.ChangePath(currentPath))
+                }
+
+                me.safarov399.common.R.id.sort_date -> {
+                    sortType = DATE_SORTING_TYPE
+                    configureSortType(sortType, popup)
+                    postEvent(HomeEvent.ChangeSortType(sortType))
+                    postEvent(HomeEvent.ChangePath(currentPath))
+                }
+
+                me.safarov399.common.R.id.sort_size -> {
+                    sortType = SIZE_SORTING_TYPE
+                    configureSortType(sortType, popup)
+                    postEvent(HomeEvent.ChangeSortType(sortType))
+                    postEvent(HomeEvent.ChangePath(currentPath))
+                }
+
+                me.safarov399.common.R.id.sort_type -> {
+                    sortType = TYPE_SORTING_TYPE
+                    configureSortType(sortType, popup)
+                    postEvent(HomeEvent.ChangeSortType(sortType))
+                    postEvent(HomeEvent.ChangePath(currentPath))
+                }
+
+                me.safarov399.common.R.id.sort_ascending -> {
+                    isAscending = true      // Update the popup menu immediately
+                    configureSortOrder(true, popup)
+                    postEvent(HomeEvent.ChangeSortOrder(ASCENDING_ORDER))
+                    postEvent(HomeEvent.ChangePath(currentPath))
+                }
+
+                me.safarov399.common.R.id.sort_descending -> {
+                    isAscending = false     // Update the popup menu immediately
+                    configureSortOrder(false, popup)
+                    postEvent(HomeEvent.ChangeSortOrder(DESCENDING_ORDER))
+                    postEvent(HomeEvent.ChangePath(currentPath))
+                }
+            }
+            true
+        }
+        popup.show()
     }
 
     private fun hideFab() {
