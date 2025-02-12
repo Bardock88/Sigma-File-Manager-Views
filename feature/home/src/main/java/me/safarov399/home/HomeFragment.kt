@@ -4,11 +4,16 @@ import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -275,8 +280,17 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         val popup = PopupMenu(requireActivity(), view)
         val popupMenuInflater = popup.menuInflater
         popupMenuInflater.inflate(me.safarov399.common.R.menu.sort_menu, popup.menu)
+
+        val headerItem = popup.menu.findItem(me.safarov399.common.R.id.sort_header)
+        val headerTitle = SpannableString("Sorting Options")
+        headerTitle.setSpan(StyleSpan(Typeface.BOLD), 0, headerTitle.length, 0)
+        headerTitle.setSpan(ForegroundColorSpan(Color.WHITE), 0, headerTitle.length, 0)
+        headerItem.title = headerTitle
+        headerItem.isEnabled = false  // Make it non-clickable
+
         configureSortOrder(isAscending, popup)
         configureSortType(sortType, popup)
+
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 me.safarov399.common.R.id.sort_name -> {
@@ -308,14 +322,14 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 }
 
                 me.safarov399.common.R.id.sort_ascending -> {
-                    isAscending = true      // Update the popup menu immediately
+                    isAscending = true
                     configureSortOrder(true, popup)
                     postEvent(HomeEvent.ChangeSortOrder(ASCENDING_ORDER))
                     postEvent(HomeEvent.ChangePath(currentPath))
                 }
 
                 me.safarov399.common.R.id.sort_descending -> {
-                    isAscending = false     // Update the popup menu immediately
+                    isAscending = false
                     configureSortOrder(false, popup)
                     postEvent(HomeEvent.ChangeSortOrder(DESCENDING_ORDER))
                     postEvent(HomeEvent.ChangePath(currentPath))
