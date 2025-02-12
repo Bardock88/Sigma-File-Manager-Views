@@ -59,6 +59,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var isClickable = true
     private var areAllFabVisible = false
     private var isAscending = true
+    private var sortType: Int = NAME_SORTING_TYPE
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -97,6 +98,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     override fun onResume() {
         super.onResume()
         if (checkStoragePermissions()) {
+            postEvent(HomeEvent.ChangeSortOrder(ASCENDING_ORDER))
+            postEvent(HomeEvent.ChangeSortType(NAME_SORTING_TYPE))
             postEvent(HomeEvent.ChangePath(currentPath))
         }
     }
@@ -112,6 +115,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
     override fun onStateUpdate(state: HomeUiState) {
         currentPath = state.currentPath
+        sortType = state.sortType
         backPressCallback?.isEnabled = currentPath != DEFAULT_DIRECTORY
         fileFolderAdapter?.submitList(state.currentFileFolders) {
             rv?.post {
@@ -222,51 +226,99 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
+    private fun configureSortType(sortType: Int, popup: PopupMenu) {
+        when (sortType) {
+            NAME_SORTING_TYPE -> {
+                popup.menu.apply {
+                    findItem(me.safarov399.common.R.id.sort_name).isChecked = true
+                    findItem(me.safarov399.common.R.id.sort_date).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_size).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_type).isChecked = false
+                }
+            }
+
+            DATE_SORTING_TYPE -> {
+                popup.menu.apply {
+                    findItem(me.safarov399.common.R.id.sort_name).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_date).isChecked = true
+                    findItem(me.safarov399.common.R.id.sort_size).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_type).isChecked = false
+                }
+            }
+
+            SIZE_SORTING_TYPE -> {
+                popup.menu.apply {
+                    findItem(me.safarov399.common.R.id.sort_name).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_date).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_size).isChecked = true
+                    findItem(me.safarov399.common.R.id.sort_type).isChecked = false
+                }
+            }
+
+            TYPE_SORTING_TYPE -> {
+                popup.menu.apply {
+                    findItem(me.safarov399.common.R.id.sort_name).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_date).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_size).isChecked = false
+                    findItem(me.safarov399.common.R.id.sort_type).isChecked = true
+                }
+            }
+        }
+    }
+
+    private fun configureSortOrder(isAscending: Boolean, popup: PopupMenu) {
+        popup.menu.apply {
+            findItem(me.safarov399.common.R.id.sort_ascending).isChecked = isAscending
+            findItem(me.safarov399.common.R.id.sort_descending).isChecked = !isAscending
+        }
+    }
+
     private fun showSortingPopup(view: View) {
         val popup = PopupMenu(requireActivity(), view)
         val popupMenuInflater = popup.menuInflater
         popupMenuInflater.inflate(me.safarov399.common.R.menu.sort_menu, popup.menu)
-        if(isAscending) {
-            popup.menu.findItem(me.safarov399.common.R.id.sort_ascending).isChecked = true
-            popup.menu.findItem(me.safarov399.common.R.id.sort_descending).isChecked = false
-        } else {
-            popup.menu.findItem(me.safarov399.common.R.id.sort_ascending).isChecked = false
-            popup.menu.findItem(me.safarov399.common.R.id.sort_descending).isChecked = true
-        }
+        configureSortOrder(isAscending, popup)
+        configureSortType(sortType, popup)
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 me.safarov399.common.R.id.sort_name -> {
-                    postEvent(HomeEvent.ChangeSortType(NAME_SORTING_TYPE))
+                    sortType = NAME_SORTING_TYPE
+                    configureSortType(sortType, popup)
+                    postEvent(HomeEvent.ChangeSortType(sortType))
                     postEvent(HomeEvent.ChangePath(currentPath))
                 }
 
                 me.safarov399.common.R.id.sort_date -> {
-                    postEvent(HomeEvent.ChangeSortType(DATE_SORTING_TYPE))
+                    sortType = DATE_SORTING_TYPE
+                    configureSortType(sortType, popup)
+                    postEvent(HomeEvent.ChangeSortType(sortType))
                     postEvent(HomeEvent.ChangePath(currentPath))
                 }
 
                 me.safarov399.common.R.id.sort_size -> {
-                    postEvent(HomeEvent.ChangeSortType(SIZE_SORTING_TYPE))
+                    sortType = SIZE_SORTING_TYPE
+                    configureSortType(sortType, popup)
+                    postEvent(HomeEvent.ChangeSortType(sortType))
                     postEvent(HomeEvent.ChangePath(currentPath))
                 }
 
                 me.safarov399.common.R.id.sort_type -> {
-                    postEvent(HomeEvent.ChangeSortType(TYPE_SORTING_TYPE))
+                    sortType = TYPE_SORTING_TYPE
+                    configureSortType(sortType, popup)
+                    postEvent(HomeEvent.ChangeSortType(sortType))
                     postEvent(HomeEvent.ChangePath(currentPath))
                 }
 
                 me.safarov399.common.R.id.sort_ascending -> {
-                    isAscending = true  // Update immediately
-                    popup.menu.findItem(me.safarov399.common.R.id.sort_ascending).isChecked = true
-                    popup.menu.findItem(me.safarov399.common.R.id.sort_descending).isChecked = false
+                    isAscending = true      // Update the popup menu immediately
+                    configureSortOrder(true, popup)
                     postEvent(HomeEvent.ChangeSortOrder(ASCENDING_ORDER))
                     postEvent(HomeEvent.ChangePath(currentPath))
                 }
 
                 me.safarov399.common.R.id.sort_descending -> {
-                    isAscending = false  // Update immediately
-                    popup.menu.findItem(me.safarov399.common.R.id.sort_ascending).isChecked = false
-                    popup.menu.findItem(me.safarov399.common.R.id.sort_descending).isChecked = true
+                    isAscending = false     // Update the popup menu immediately
+                    configureSortOrder(false, popup)
                     postEvent(HomeEvent.ChangeSortOrder(DESCENDING_ORDER))
                     postEvent(HomeEvent.ChangePath(currentPath))
                 }
