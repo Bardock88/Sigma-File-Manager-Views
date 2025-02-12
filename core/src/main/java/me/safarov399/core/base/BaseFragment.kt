@@ -17,6 +17,8 @@ abstract class BaseFragment<VB : ViewBinding, VM : BaseViewModel<State, Effect, 
 
     private lateinit var viewModel: VM
     lateinit var binding: VB
+    protected val lastState: State
+        get() = viewModel.state.value
 
     abstract val getViewBinding: (LayoutInflater, ViewGroup?, Boolean) -> VB
 

@@ -98,8 +98,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     override fun onResume() {
         super.onResume()
         if (checkStoragePermissions()) {
-            postEvent(HomeEvent.ChangeSortOrder(ASCENDING_ORDER))
-            postEvent(HomeEvent.ChangeSortType(NAME_SORTING_TYPE))
             postEvent(HomeEvent.ChangePath(currentPath))
         }
     }

@@ -33,6 +33,8 @@ class HomeViewModel @Inject constructor(
                     getCurrentState().copy(
                         currentPath = event.newPath,
                         currentFileFolders = readStorage(event.newPath),
+                        sortType = getSortType(),
+                        isAscending = getSortOrder() == ASCENDING_ORDER
                     )
                 )
             }
