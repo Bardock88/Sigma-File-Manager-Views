@@ -6,11 +6,6 @@ Upcoming features.
     • Move
     • Rename
     • Delete
-• Sorting by:
-    • Name
-    • Date
-    • Size
-    • Type
 • Display file details:
     • Size
     • Modified date
