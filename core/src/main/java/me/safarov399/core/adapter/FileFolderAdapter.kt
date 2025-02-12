@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import me.safarov399.core.listeners.OnClickListener
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
@@ -46,14 +47,14 @@ class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(
             is FileModel -> {
                 (holder as FileViewHolder).bind(item)
                 holder.itemView.setOnClickListener {
-                    onFileClickListener?.onClick(position, item)
+                    onFileClickListener?.onClickFileFolder(position, item)
                 }
             }
 
             is FolderModel -> {
                 (holder as FolderViewHolder).bind(item)
                 holder.itemView.setOnClickListener {
-                    onFolderClickListener?.onClick(position, item)
+                    onFolderClickListener?.onClickFileFolder(position, item)
                 }
             }
 

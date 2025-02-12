@@ -39,7 +39,7 @@ import me.safarov399.common.FileConstants.SIZE_SORTING_TYPE
 import me.safarov399.common.FileConstants.TYPE_SORTING_TYPE
 import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
-import me.safarov399.core.adapter.OnClickListener
+import me.safarov399.core.listeners.OnClickListener
 import me.safarov399.core.base.BaseFragment
 import me.safarov399.core.storage.StorageConstants.DEFAULT_DIRECTORY
 import me.safarov399.core.storage.StorageConstants.RESTRICTED_DIRECTORIES
@@ -128,7 +128,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         isAscending = state.isAscending
 
         fileFolderAdapter?.setOnClickListener(object : OnClickListener {
-            override fun onClick(position: Int, model: FileFolderModel) {
+            override fun onClickFileFolder(position: Int, model: FileFolderModel) {
                 hideFab()
 
                 if (!isClickable) return // Ignore clicks if interaction is disabled
@@ -153,7 +153,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 binding.root.postDelayed({ isClickable = true }, 500)
             }
         }, object : OnClickListener {
-            override fun onClick(position: Int, model: FileFolderModel) {
+            override fun onClickFileFolder(position: Int, model: FileFolderModel) {
                 hideFab()
 
                 if (!isClickable) return // Ignore clicks if interaction is disabled
