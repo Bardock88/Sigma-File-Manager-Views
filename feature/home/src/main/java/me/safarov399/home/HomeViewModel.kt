@@ -32,7 +32,7 @@ class HomeViewModel @Inject constructor(
                 setState(
                     getCurrentState().copy(
                         currentPath = event.newPath,
-                        currentFileFolders = readStorage(event.newPath)
+                        currentFileFolders = readStorage(event.newPath),
                     )
                 )
             }
@@ -48,12 +48,20 @@ class HomeViewModel @Inject constructor(
                 }
             }
 
-            is HomeEvent.ChangeSortType -> saveSortType(event.sortBy)
+            is HomeEvent.ChangeSortType -> {
+                saveSortType(event.sortBy)
+                setState(
+                    getCurrentState().copy(
+                        sortType = event.sortBy
+                    )
+                )
+            }
+
             is HomeEvent.ChangeSortOrder -> {
                 saveSortOrder(event.sortOrder)
                 setState(
                     getCurrentState().copy(
-                        isAscending = event.sortOrder == ASCENDING_ORDER
+                        isAscending = event.sortOrder == ASCENDING_ORDER,
                     )
                 )
             }
@@ -62,7 +70,6 @@ class HomeViewModel @Inject constructor(
 
     private fun saveSortType(sortType: Int) {
         sortingPreferenceRepository.saveSortTypePreference(sortType)
-
     }
 
     private fun getSortType(): Int {
