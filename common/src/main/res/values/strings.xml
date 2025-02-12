@@ -35,4 +35,11 @@
     <string name="folder_name_must_not_empty">Folder name must not be empty.</string>
 
     <string name="three_dots_sorting_cd">Open sorting pop up.</string>
+
+    <string name="name">Name</string>
+    <string name="date">Date</string>
+    <string name="sort_size">Size</string>
+    <string name="type">Type</string>
+    <string name="ascending">Ascending</string>
+    <string name="descending">Descending</string>
 </resources>

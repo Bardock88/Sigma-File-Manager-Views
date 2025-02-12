@@ -1,36 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+
+    <item
+        android:id="@+id/sort_header"
+        android:title="" />
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/sort_name"
             android:checkable="true"
-            android:title="Name"
-
-            />
+            android:title="@string/name" />
         <item
             android:id="@+id/sort_date"
             android:checkable="true"
-
-            android:title="Date" />
+            android:title="@string/date" />
         <item
             android:id="@+id/sort_size"
             android:checkable="true"
-            android:title="Size" />
+            android:title="@string/sort_size" />
         <item
             android:id="@+id/sort_type"
             android:checkable="true"
-            android:title="Type" />
+            android:title="@string/type" />
     </group>
 
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/sort_ascending"
             android:checkable="true"
-            android:title="Ascending" />
+            android:title="@string/ascending" />
         <item
             android:id="@+id/sort_descending"
             android:checkable="true"
-            android:title="Descending" />
+            android:title="@string/descending" />
     </group>
 </menu>
