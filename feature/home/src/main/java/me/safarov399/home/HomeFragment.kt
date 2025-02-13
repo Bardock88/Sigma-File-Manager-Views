@@ -29,14 +29,18 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
-import me.safarov399.common.FileConstants.ASCENDING_ORDER
-import me.safarov399.common.FileConstants.DATE_SORTING_TYPE
-import me.safarov399.common.FileConstants.DESCENDING_ORDER
-import me.safarov399.common.FileConstants.FILE_TYPE
-import me.safarov399.common.FileConstants.FOLDER_TYPE
-import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
-import me.safarov399.common.FileConstants.SIZE_SORTING_TYPE
-import me.safarov399.common.FileConstants.TYPE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.ASCENDING_ORDER
+import me.safarov399.common.file.FileConstants.DATE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.DESCENDING_ORDER
+import me.safarov399.common.file.FileConstants.FILE_TYPE
+import me.safarov399.common.file.FileConstants.FOLDER_TYPE
+import me.safarov399.common.file.FileConstants.NAME_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.SIZE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.TYPE_SORTING_TYPE
+import me.safarov399.common.file.FileExtensions.APK_FILE
+import me.safarov399.common.file.FileExtensions.ARCHIVING_ALGORITHMS
+import me.safarov399.common.file.FileExtensions.COMPRESSION_ALGORITHMS
+import me.safarov399.common.file.FileExtensions.COMPRESSION_AND_ARCHIVE
 import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.base.BaseFragment
@@ -209,10 +213,14 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             }, object : OnHoldListener {
                 override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
                     val fragment = BottomSheetFragment()
-                    val fileExtension = (model as FileModel).name.substringAfterLast(".")
+                    val fileExtension = if((model as FileModel).name.contains(".")) {
+                        (model).name.substringAfterLast(".")
+                    } else ""
                     when (fileExtension) {
-                        "apk" -> fragment.setOperationsType(APK_OPERATIONS_CODE)
-                        "zip" -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+                        APK_FILE -> fragment.setOperationsType(APK_OPERATIONS_CODE)
+                        in ARCHIVING_ALGORITHMS -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+                        in COMPRESSION_ALGORITHMS -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+                        in COMPRESSION_AND_ARCHIVE -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
                         else -> fragment.setOperationsType(FILE_OPERATIONS_CODE)
                     }
                     fragment.apply {
