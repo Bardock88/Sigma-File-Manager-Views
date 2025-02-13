@@ -29,25 +29,36 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
-import me.safarov399.common.FileConstants.ASCENDING_ORDER
-import me.safarov399.common.FileConstants.DATE_SORTING_TYPE
-import me.safarov399.common.FileConstants.DESCENDING_ORDER
-import me.safarov399.common.FileConstants.FILE_TYPE
-import me.safarov399.common.FileConstants.FOLDER_TYPE
-import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
-import me.safarov399.common.FileConstants.SIZE_SORTING_TYPE
-import me.safarov399.common.FileConstants.TYPE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.ASCENDING_ORDER
+import me.safarov399.common.file.FileConstants.DATE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.DESCENDING_ORDER
+import me.safarov399.common.file.FileConstants.FILE_TYPE
+import me.safarov399.common.file.FileConstants.FOLDER_TYPE
+import me.safarov399.common.file.FileConstants.NAME_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.SIZE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.TYPE_SORTING_TYPE
+import me.safarov399.common.file.FileExtensions.APK_FILE
+import me.safarov399.common.file.FileExtensions.ARCHIVING_ALGORITHMS
+import me.safarov399.common.file.FileExtensions.COMPRESSION_ALGORITHMS
+import me.safarov399.common.file.FileExtensions.COMPRESSION_AND_ARCHIVE
 import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
-import me.safarov399.core.adapter.OnClickListener
 import me.safarov399.core.base.BaseFragment
+import me.safarov399.core.listeners.OnClickListener
+import me.safarov399.core.listeners.OnHoldListener
+import me.safarov399.core.navigation.NavigationDestinations.APK_OPERATIONS_CODE
+import me.safarov399.core.navigation.NavigationDestinations.ARCHIVE_OPERATIONS_CODE
+import me.safarov399.core.navigation.NavigationDestinations.FILE_OPERATIONS_CODE
+import me.safarov399.core.navigation.NavigationDestinations.FOLDER_OPERATIONS_CODE
 import me.safarov399.core.storage.StorageConstants.DEFAULT_DIRECTORY
 import me.safarov399.core.storage.StorageConstants.RESTRICTED_DIRECTORIES
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
+import me.safarov399.home.bottom_sheet.BottomSheetFragment
 import me.safarov399.home.databinding.FragmentHomeBinding
 import me.safarov399.uikit.custom_views.dialogs.CreateFileFolderDialog
+import me.safarov399.uikit.custom_views.dialogs.OnHoldBottomSheetDialog
 import me.safarov399.uikit.custom_views.dialogs.PermissionDialog
 import java.io.File
 
@@ -65,6 +76,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var areAllFabVisible = false
     private var isAscending = true
     private var sortType: Int = NAME_SORTING_TYPE
+
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -128,7 +140,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         isAscending = state.isAscending
 
         fileFolderAdapter?.setOnClickListener(object : OnClickListener {
-            override fun onClick(position: Int, model: FileFolderModel) {
+            override fun onClickFileFolder(position: Int, model: FileFolderModel) {
                 hideFab()
 
                 if (!isClickable) return // Ignore clicks if interaction is disabled
@@ -153,7 +165,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 binding.root.postDelayed({ isClickable = true }, 500)
             }
         }, object : OnClickListener {
-            override fun onClick(position: Int, model: FileFolderModel) {
+            override fun onClickFileFolder(position: Int, model: FileFolderModel) {
                 hideFab()
 
                 if (!isClickable) return // Ignore clicks if interaction is disabled
@@ -181,6 +193,49 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 isClickable = true // Reset the flag after handling the intent
             }
         })
+
+        fileFolderAdapter?.setOnHoldListener(
+            object : OnHoldListener {
+                override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
+                    val fragment = BottomSheetFragment()
+                    fragment.apply {
+                        setFileName((model as FolderModel).name)
+                        setOperationsType(FOLDER_OPERATIONS_CODE)
+                        setFilePath(currentPath)
+                    }
+                    val bottomSheet = OnHoldBottomSheetDialog {
+                        fragment
+                    }
+                    if (!bottomSheet.isAdded) {
+                        bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+                    }
+                }
+            }, object : OnHoldListener {
+                override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
+                    val fragment = BottomSheetFragment()
+                    val fileExtension = if((model as FileModel).name.contains(".")) {
+                        (model).name.substringAfterLast(".")
+                    } else ""
+                    when (fileExtension) {
+                        APK_FILE -> fragment.setOperationsType(APK_OPERATIONS_CODE)
+                        in ARCHIVING_ALGORITHMS -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+                        in COMPRESSION_ALGORITHMS -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+                        in COMPRESSION_AND_ARCHIVE -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+                        else -> fragment.setOperationsType(FILE_OPERATIONS_CODE)
+                    }
+                    fragment.apply {
+                        setFileName(model.name)
+                        setFilePath(currentPath)
+                    }
+                    val bottomSheet = OnHoldBottomSheetDialog {
+                        fragment
+                    }
+                    if (!bottomSheet.isAdded) {
+                        bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+                    }
+                }
+            }
+        )
 
         binding.homeNavUp.setOnClickListener {
             if (state.currentPath != DEFAULT_DIRECTORY) {
@@ -537,4 +592,5 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         fileFolderAdapter = null
         backPressCallback = null
     }
+
 }

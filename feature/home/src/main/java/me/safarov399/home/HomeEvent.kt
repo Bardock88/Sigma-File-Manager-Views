@@ -1,7 +1,7 @@
 package me.safarov399.home
 
-import me.safarov399.common.FileConstants.ASCENDING_ORDER
-import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.ASCENDING_ORDER
+import me.safarov399.common.file.FileConstants.NAME_SORTING_TYPE
 
 sealed class HomeEvent {
     data class ChangePath(val newPath: String) : HomeEvent()

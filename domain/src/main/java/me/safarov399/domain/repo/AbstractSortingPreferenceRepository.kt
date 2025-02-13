@@ -1,4 +1,4 @@
-package me.safarov399.domain.sorting
+package me.safarov399.domain.repo
 
 interface AbstractSortingPreferenceRepository {
     fun saveSortTypePreference(sortType: Int)

@@ -3,9 +3,8 @@ package me.safarov399.data.preferences
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import me.safarov399.common.FileConstants
-import me.safarov399.common.FileConstants.ASCENDING_ORDER
-import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.ASCENDING_ORDER
+import me.safarov399.common.file.FileConstants.NAME_SORTING_TYPE
 
 class EncryptedSharedPreferencesManager(ctx: Context) {
     private val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
@@ -23,7 +22,7 @@ class EncryptedSharedPreferencesManager(ctx: Context) {
     }
 
     fun getSortTypePreference(): Int {
-        return sharedPreferences.getInt(SORT_TYPE, NAME_SORTING_TYPE)   // Default is name sorting
+        return sharedPreferences.getInt(SORT_TYPE, NAME_SORTING_TYPE)
     }
 
     fun saveSortOrderPreference(sortOrder: Int) {
@@ -31,7 +30,7 @@ class EncryptedSharedPreferencesManager(ctx: Context) {
     }
 
     fun getSortOrderPreference(): Int {
-        return sharedPreferences.getInt(SORT_ORDER, ASCENDING_ORDER)    // Default is ascending order
+        return sharedPreferences.getInt(SORT_ORDER, ASCENDING_ORDER)
     }
 
     companion object {

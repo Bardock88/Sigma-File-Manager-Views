@@ -2,6 +2,7 @@
 <resources>
     <color name="default_text_color">@color/white</color>
     <color name="default_dialog_color">@color/gray</color>
+    <color name="default_color">@color/black</color>
+    <color name="default_color_inverse">@color/white</color>
     <color name="fab">@color/dark_gray</color>
-
 </resources>

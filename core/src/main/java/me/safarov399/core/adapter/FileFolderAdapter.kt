@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import me.safarov399.core.listeners.OnClickListener
+import me.safarov399.core.listeners.OnHoldListener
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
@@ -18,6 +20,9 @@ class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(
 
     private var onFolderClickListener: OnClickListener? = null
     private var onFileClickListener: OnClickListener? = null
+
+    private var onFolderHoldListener: OnHoldListener? = null
+    private var onFileHoldListener: OnHoldListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
@@ -45,25 +50,43 @@ class FileFolderAdapter : ListAdapter<FileFolderModel, RecyclerView.ViewHolder>(
         when (val item = getItem(position)) {
             is FileModel -> {
                 (holder as FileViewHolder).bind(item)
-                holder.itemView.setOnClickListener {
-                    onFileClickListener?.onClick(position, item)
+                holder.itemView.apply {
+                    setOnClickListener {
+                        onFileClickListener?.onClickFileFolder(position, item)
+                    }
+                    setOnLongClickListener {
+                        onFileHoldListener?.onHoldFileFolder(position, item)
+                        true
+                    }
                 }
             }
 
             is FolderModel -> {
                 (holder as FolderViewHolder).bind(item)
-                holder.itemView.setOnClickListener {
-                    onFolderClickListener?.onClick(position, item)
+                holder.itemView.apply {
+                    setOnClickListener {
+                        onFolderClickListener?.onClickFileFolder(position, item)
+                    }
+                    setOnLongClickListener {
+                        onFolderHoldListener?.onHoldFileFolder(position, item)
+                        true
+                    }
                 }
+
             }
 
             else -> throw IllegalArgumentException("Invalid holder type for position $position")
         }
     }
 
-    fun setOnClickListener(folderListener: OnClickListener?, fileListener: OnClickListener) {
+    fun setOnClickListener(folderListener: OnClickListener, fileListener: OnClickListener) {
         this.onFolderClickListener = folderListener
         this.onFileClickListener = fileListener
+    }
+
+    fun setOnHoldListener(folderListener: OnHoldListener, fileListener: OnHoldListener) {
+        this.onFolderHoldListener = folderListener
+        this.onFileHoldListener = fileListener
     }
 
     override fun getItemViewType(position: Int): Int {

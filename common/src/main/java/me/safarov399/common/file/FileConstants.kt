@@ -1,4 +1,4 @@
-package me.safarov399.common
+package me.safarov399.common.file
 
 object FileConstants {
     const val FILE_TYPE = 0
