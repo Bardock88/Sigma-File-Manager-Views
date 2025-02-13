@@ -3,7 +3,6 @@ package me.safarov399.data.preferences
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import me.safarov399.common.FileConstants
 import me.safarov399.common.FileConstants.ASCENDING_ORDER
 import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
 

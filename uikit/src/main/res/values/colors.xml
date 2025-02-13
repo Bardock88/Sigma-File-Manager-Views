@@ -9,6 +9,8 @@
 
     <color name="default_text_color">@color/black</color>
     <color name="default_dialog_color">@color/white</color>
+    <color name="default_color">@color/white</color>
+    <color name="default_color_inverse">@color/black</color>
     <color name="toolbar">#FF00AA00</color>
     <color name="fab">@color/light_gray</color>
 </resources>

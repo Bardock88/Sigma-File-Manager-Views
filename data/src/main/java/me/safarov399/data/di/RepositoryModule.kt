@@ -9,6 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import me.safarov399.data.preferences.EncryptedSharedPreferencesManager
 import me.safarov399.data.preferences.SortingPreferenceRepositoryImpl
 import me.safarov399.data.repo.FileFolderOperationRepository
+import me.safarov399.domain.repo.AbstractFileFolderOperationRepository
 import me.safarov399.domain.repo.AbstractSortingPreferenceRepository
 import javax.inject.Singleton
 
@@ -34,5 +35,5 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideFileFolderOperationsRepository(): FileFolderOperationRepository = FileFolderOperationRepository()
+    fun provideFileFolderOperationsRepository(): AbstractFileFolderOperationRepository = FileFolderOperationRepository()
 }

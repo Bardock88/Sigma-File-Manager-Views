@@ -39,15 +39,22 @@ import me.safarov399.common.FileConstants.SIZE_SORTING_TYPE
 import me.safarov399.common.FileConstants.TYPE_SORTING_TYPE
 import me.safarov399.core.PermissionConstants
 import me.safarov399.core.adapter.FileFolderAdapter
-import me.safarov399.core.listeners.OnClickListener
 import me.safarov399.core.base.BaseFragment
+import me.safarov399.core.listeners.OnClickListener
+import me.safarov399.core.listeners.OnHoldListener
+import me.safarov399.core.navigation.NavigationDestinations.APK_OPERATIONS_CODE
+import me.safarov399.core.navigation.NavigationDestinations.ARCHIVE_OPERATIONS_CODE
+import me.safarov399.core.navigation.NavigationDestinations.FILE_OPERATIONS_CODE
+import me.safarov399.core.navigation.NavigationDestinations.FOLDER_OPERATIONS_CODE
 import me.safarov399.core.storage.StorageConstants.DEFAULT_DIRECTORY
 import me.safarov399.core.storage.StorageConstants.RESTRICTED_DIRECTORIES
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
+import me.safarov399.home.bottom_sheet.BottomSheetFragment
 import me.safarov399.home.databinding.FragmentHomeBinding
 import me.safarov399.uikit.custom_views.dialogs.CreateFileFolderDialog
+import me.safarov399.uikit.custom_views.dialogs.OnHoldBottomSheetDialog
 import me.safarov399.uikit.custom_views.dialogs.PermissionDialog
 import java.io.File
 
@@ -65,6 +72,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var areAllFabVisible = false
     private var isAscending = true
     private var sortType: Int = NAME_SORTING_TYPE
+
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
@@ -181,6 +189,45 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 isClickable = true // Reset the flag after handling the intent
             }
         })
+
+        fileFolderAdapter?.setOnHoldListener(
+            object : OnHoldListener {
+                override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
+                    val fragment = BottomSheetFragment()
+                    fragment.apply {
+                        setFileName((model as FolderModel).name)
+                        setOperationsType(FOLDER_OPERATIONS_CODE)
+                        setFilePath(currentPath)
+                    }
+                    val bottomSheet = OnHoldBottomSheetDialog {
+                        fragment
+                    }
+                    if (!bottomSheet.isAdded) {
+                        bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+                    }
+                }
+            }, object : OnHoldListener {
+                override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
+                    val fragment = BottomSheetFragment()
+                    val fileExtension = (model as FileModel).name.substringAfterLast(".")
+                    when (fileExtension) {
+                        "apk" -> fragment.setOperationsType(APK_OPERATIONS_CODE)
+                        "zip" -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+                        else -> fragment.setOperationsType(FILE_OPERATIONS_CODE)
+                    }
+                    fragment.apply {
+                        setFileName(model.name)
+                        setFilePath(currentPath)
+                    }
+                    val bottomSheet = OnHoldBottomSheetDialog {
+                        fragment
+                    }
+                    if (!bottomSheet.isAdded) {
+                        bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+                    }
+                }
+            }
+        )
 
         binding.homeNavUp.setOnClickListener {
             if (state.currentPath != DEFAULT_DIRECTORY) {
@@ -537,4 +584,5 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         fileFolderAdapter = null
         backPressCallback = null
     }
+
 }

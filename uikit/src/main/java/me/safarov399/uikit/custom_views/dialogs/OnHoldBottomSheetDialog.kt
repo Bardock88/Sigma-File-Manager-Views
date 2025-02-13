@@ -11,15 +11,10 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import me.safarov399.uikit.databinding.OnHoldBottomSheetDialogBinding
 
 class OnHoldBottomSheetDialog(
-    listener: OnHoldBottomSheetListener,
     private val fragmentFactory: (() -> Fragment)? = null
 ) : BottomSheetDialogFragment() {
     private var binding: OnHoldBottomSheetDialogBinding? = null
-    private var mListener: OnHoldBottomSheetListener? = null
 
-    init {
-        this.mListener = listener
-    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -27,20 +22,6 @@ class OnHoldBottomSheetDialog(
     ): View? {
         binding = OnHoldBottomSheetDialogBinding.inflate(inflater, container, false)
         return binding?.root
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        try {
-            mListener = context as OnHoldBottomSheetListener?
-        } catch (e: ClassCastException) {
-            e.printStackTrace()
-        }
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        mListener?.onBottomSheetClosedOrDismissed()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -58,7 +39,4 @@ class OnHoldBottomSheetDialog(
         }
     }
 
-    interface OnHoldBottomSheetListener {
-        fun onBottomSheetClosedOrDismissed()
-    }
 }
