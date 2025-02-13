@@ -5,10 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import dagger.hilt.android.AndroidEntryPoint
-import me.safarov399.core.FileFolderOperationsConstants.APK_OPERATIONS_LIST
-import me.safarov399.core.FileFolderOperationsConstants.ARCHIVE_OPERATIONS
-import me.safarov399.core.FileFolderOperationsConstants.FILE_OPERATIONS_LIST
-import me.safarov399.core.FileFolderOperationsConstants.FOLDER_OPERATIONS_LIST
+import me.safarov399.core.file.FileFolderOperationsConstants.APK_OPERATIONS_LIST
+import me.safarov399.core.file.FileFolderOperationsConstants.ARCHIVE_OPERATIONS
+import me.safarov399.core.file.FileFolderOperationsConstants.FILE_OPERATIONS_LIST
+import me.safarov399.core.file.FileFolderOperationsConstants.FOLDER_OPERATIONS_LIST
 import me.safarov399.core.adapter.BottomSheetAdapter
 import me.safarov399.core.base.BaseFragment
 import me.safarov399.core.navigation.NavigationDestinations.APK_OPERATIONS_CODE

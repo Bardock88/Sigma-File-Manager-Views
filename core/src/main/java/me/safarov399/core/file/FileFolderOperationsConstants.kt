@@ -1,4 +1,4 @@
-package me.safarov399.core
+package me.safarov399.core.file
 
 import me.safarov399.domain.models.adapter.OnHoldModel
 
