@@ -17,7 +17,7 @@ import me.safarov399.core.storage.StorageConstants.OBB_DIRECTORY
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
-import me.safarov399.domain.sorting.AbstractSortingPreferenceRepository
+import me.safarov399.domain.repo.AbstractSortingPreferenceRepository
 import java.io.File
 import javax.inject.Inject
 

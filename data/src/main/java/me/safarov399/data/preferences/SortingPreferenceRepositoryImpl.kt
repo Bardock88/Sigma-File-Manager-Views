@@ -1,6 +1,6 @@
 package me.safarov399.data.preferences
 
-import me.safarov399.domain.sorting.AbstractSortingPreferenceRepository
+import me.safarov399.domain.repo.AbstractSortingPreferenceRepository
 import javax.inject.Inject
 
 
