@@ -5,11 +5,11 @@ import android.view.ViewGroup
 import me.safarov399.core.base.BaseFragment
 import me.safarov399.home.databinding.FragmentOnHoldBottomSheetBinding
 
-class OnHoldFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, OnHoldViewModel, OnHoldState, OnHoldEffect, OnHoldEvent>() {
+class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, BottomSheetViewModel, BottomSheetState, BottomSheetEffect, BottomSheetEvent>() {
 
     override val getViewBinding: (LayoutInflater, ViewGroup?, Boolean) -> FragmentOnHoldBottomSheetBinding = { inflater, viewGroup, value ->
         FragmentOnHoldBottomSheetBinding.inflate(inflater, viewGroup, value)
     }
 
-    override fun getViewModelClass(): Class<OnHoldViewModel> = OnHoldViewModel::class.java
+    override fun getViewModelClass(): Class<BottomSheetViewModel> = BottomSheetViewModel::class.java
 }

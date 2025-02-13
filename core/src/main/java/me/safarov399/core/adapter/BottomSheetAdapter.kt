@@ -1,28 +1,32 @@
 package me.safarov399.core.adapter
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import me.safarov399.core.listeners.OnClickListener
 import me.safarov399.domain.models.adapter.OnHoldModel
 
-class OnHoldAdapter : ListAdapter<OnHoldModel, OnHoldAdapter.OnHoldViewHolder>(OnHoldDiffCallback()) {
+class BottomSheetAdapter : ListAdapter<OnHoldModel, BottomSheetAdapter.OnHoldViewHolder>(OnHoldDiffCallback()) {
 
     private var onClickListener: OnClickListener? = null
 
-    class OnHoldViewHolder(itemView: View, private val ctx: Context) : RecyclerView.ViewHolder(itemView) {
+    class OnHoldViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val onHoldIcon = itemView.findViewById<ImageView>(me.safarov399.uikit.R.id.ohbst_icon)
+        private val titleTv = itemView.findViewById<TextView>(me.safarov399.uikit.R.id.ohbst_title)
         fun bind(model: OnHoldModel) {
-
+            titleTv.text = model.title
+            onHoldIcon.setImageResource(model.iconId)
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OnHoldViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(me.safarov399.uikit.R.layout.on_hold_bottom_sheet_tile, parent, false)
-        return OnHoldViewHolder(view, parent.context)
+        return OnHoldViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: OnHoldViewHolder, position: Int) {
