@@ -42,4 +42,24 @@
     <string name="type">Type</string>
     <string name="ascending">Ascending</string>
     <string name="descending">Descending</string>
+
+    <string name="open">Open</string>
+    <string name="open_with">Open with</string>
+    <string name="view">View</string>
+    <string name="install">Install</string>
+    <string name="verify_signature">Verify signature</string>
+    <string name="check_dependencies">Check dependencies</string>
+    <string name="properties">Properties</string>
+    <string name="share">Share</string>
+    <string name="compress">Compress</string>
+    <string name="delete">Delete</string>
+    <string name="shred">Shred</string>
+    <string name="rename">Rename</string>
+    <string name="copy">Copy</string>
+    <string name="move_to">Move to …</string>
+    <string name="add_to_favorites">Add to Favorites</string>
+    <string name="create_shortcut">Create shortcut</string>
+    <string name="checksum">Checksum</string>
+    <string name="change_permissions">Change Permissions</string>
+    <string name="extract">Extract</string>
 </resources>

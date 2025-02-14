@@ -5,15 +5,42 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import me.safarov399.common.file.FileExtensions.APK_FILE
 import java.io.File
 
 object FileHandler {
-    fun installApk(apkUri: String, fragment: Fragment) {
-        val apkFile = File(apkUri)
+
+    fun openFile(path: String, name: String, fragment: Fragment, generic: Boolean) {
+        val file = File(path, name)
+        val fileExtension = file.extension
+        val uri = FileProvider.getUriForFile(fragment.requireContext(), fragment.requireActivity().packageName + ".fileprovider", file)
+
+        if (fileExtension == APK_FILE) {
+            if (fragment.requireActivity().packageManager.canRequestPackageInstalls()) {
+                installApk(path, name, fragment)
+            } else {
+                requestApkInstallPermission(fragment)
+            }
+        }
+
+        var mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension) ?: "*/*"
+        if (generic) mimeType = "*/*"
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, mimeType)
+            flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        }
+        fragment.startActivity(intent)
+    }
+
+
+    fun installApk(path: String, name: String, fragment: Fragment) {
+        val absolutePath = fileAndPathMerger(name, path)
+        val apkFile = File(absolutePath)
         if (!apkFile.exists()) {
-            Log.e("APKInstall", "APK file does not exist: $apkUri")
+            Log.e("APKInstall", "APK file does not exist: $absolutePath")
             return
         }
 
