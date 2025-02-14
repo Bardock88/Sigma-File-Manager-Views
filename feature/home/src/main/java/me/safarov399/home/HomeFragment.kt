@@ -187,26 +187,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
                 if (!isClickable) return // Ignore clicks if interaction is disabled
                 isClickable = false
-
-                val file = File(state.currentPath, (model as FileModel).name)
-                val fileExtension = file.extension
-                val uri = FileProvider.getUriForFile(requireContext(), requireActivity().packageName + ".fileprovider", file)
-
-                if (fileExtension == "apk") {
-                    if (requireActivity().packageManager.canRequestPackageInstalls()) {
-                        FileHandler.installApk(file.absolutePath, this@HomeFragment)
-                    } else {
-                        FileHandler.requestApkInstallPermission(this@HomeFragment)
-                    }
-                } else {
-                    val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension) ?: "*/*"
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(uri, mimeType)
-                        flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    }
-
-                    startActivity(intent)
-                }
+                FileHandler.openFile(state.currentPath, (model as FileModel).name, this@HomeFragment, false)
                 isClickable = true // Reset the flag after handling the intent
             }
         })
