@@ -1,4 +1,5 @@
 package me.safarov399.home.bottom_sheet
 
-class BottomSheetEffect {
+sealed class BottomSheetEffect {
+    data object DeletionFailed: BottomSheetEffect()
 }

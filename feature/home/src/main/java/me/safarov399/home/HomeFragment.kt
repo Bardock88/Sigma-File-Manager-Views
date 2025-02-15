@@ -15,13 +15,11 @@ import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
@@ -58,7 +56,6 @@ import me.safarov399.home.databinding.FragmentHomeBinding
 import me.safarov399.uikit.custom_views.dialogs.CreateFileFolderDialog
 import me.safarov399.uikit.custom_views.dialogs.OnHoldBottomSheetDialog
 import me.safarov399.uikit.custom_views.dialogs.permission.DialogProvider
-import java.io.File
 
 
 @AndroidEntryPoint
@@ -200,10 +197,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                         setFileName((model as FolderModel).name)
                         setOperationsType(FOLDER_OPERATIONS_CODE)
                         setFilePath(currentPath)
+                        setType(FOLDER_TYPE)
                     }
-                    val bottomSheet = OnHoldBottomSheetDialog {
-                        fragment
-                    }
+                    val bottomSheet = OnHoldBottomSheetDialog(
+                        fragmentFactory = { fragment },
+                        dismissListener = {
+                            postEvent(HomeEvent.ChangePath(state.currentPath))
+                        }
+                    )
+
                     if (!bottomSheet.isAdded) {
                         bottomSheet.show(parentFragmentManager, bottomSheet.tag)
                     }
@@ -224,10 +226,11 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                     fragment.apply {
                         setFileName(model.name)
                         setFilePath(currentPath)
+                        setType(FILE_TYPE)
                     }
-                    val bottomSheet = OnHoldBottomSheetDialog {
-                        fragment
-                    }
+                    val bottomSheet = OnHoldBottomSheetDialog(fragmentFactory = { fragment }, dismissListener = { postEvent(HomeEvent.ChangePath(state.currentPath)) })
+
+
                     if (!bottomSheet.isAdded) {
                         bottomSheet.show(parentFragmentManager, bottomSheet.tag)
                     }

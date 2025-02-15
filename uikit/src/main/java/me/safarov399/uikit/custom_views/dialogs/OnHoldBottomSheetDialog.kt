@@ -11,7 +11,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import me.safarov399.uikit.databinding.OnHoldBottomSheetDialogBinding
 
 class OnHoldBottomSheetDialog(
-    private val fragmentFactory: (() -> Fragment)? = null
+    private val fragmentFactory: (() -> Fragment)? = null,
+    private val dismissListener: (() -> Unit)? = null
 ) : BottomSheetDialogFragment() {
     private var binding: OnHoldBottomSheetDialogBinding? = null
 
@@ -37,6 +38,11 @@ class OnHoldBottomSheetDialog(
                 }.commit()
             }
         }
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        dismissListener?.invoke()
     }
 
 }

@@ -54,7 +54,10 @@ class BottomSheetViewModel @Inject constructor(
             }
 
             is BottomSheetEvent.Delete -> {
-                repository.delete(event.paths)
+                val success = repository.delete(event.paths)
+                if(!success) {
+                    postEffect(BottomSheetEffect.DeletionFailed)
+                }
             }
 
             is BottomSheetEvent.Extract -> {
