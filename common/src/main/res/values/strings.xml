@@ -3,24 +3,19 @@
     <string name="folder_icon">Folder</string>
     <string name="size">bytes</string>
     <string name="file_size">%1$s %2$s</string>
-
     <string name="items">items</string>
     <string name="folder_items">%1$s %2$s</string>
-
     <string name="navigate_up_cd">Navigate up</string>
     <string name="navigate_up_tv">…</string>
-
     <string name="permission_dialog_title">Permission Required</string>
     <string name="permission_dialog_description">This app requires storage permission to be able to access and handle the files.</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
-
     <string name="not_granted_title">Permission not granted</string>
     <string name="not_granted_description">Please go to settings to give storage permission.</string>
     <string name="not_granted_confirm">Go to settings</string>
     <string name="not_granted_cancel">Exit the app</string>
     <string name="empty">Empty</string>
-
     <string name="create_new_file">Create a new file</string>
     <string name="enter_file_name">Enter file name</string>
     <string name="create_new_folder">Create a new folder</string>
@@ -33,16 +28,13 @@
     <string name="folder_created">Folder %1$s is created at the path %2$s</string>
     <string name="file_name_must_not_empty">File name must not be empty.</string>
     <string name="folder_name_must_not_empty">Folder name must not be empty.</string>
-
     <string name="three_dots_sorting_cd">Open sorting pop up.</string>
-
     <string name="name">Name</string>
     <string name="date">Date</string>
     <string name="sort_size">Size</string>
     <string name="type">Type</string>
     <string name="ascending">Ascending</string>
     <string name="descending">Descending</string>
-
     <string name="open">Open</string>
     <string name="open_with">Open with</string>
     <string name="view">View</string>
@@ -62,4 +54,7 @@
     <string name="checksum">Checksum</string>
     <string name="change_permissions">Change Permissions</string>
     <string name="extract">Extract</string>
+    <string name="deletion_failure">Some items could not be deleted.</string>
+    <string name="file">file</string>
+    <string name="folder">folder</string>
 </resources>

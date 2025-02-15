@@ -6,7 +6,7 @@ interface AbstractFileFolderOperationRepository {
     fun checkDependencies(path: String)
     fun properties(path: String)
     fun compress(path: List<String>)
-    fun delete(path: List<String>)
+    fun delete(paths: List<String>): Boolean
     fun shred(path: List<String>)
     fun rename(path: String, newName: String)
     fun copy(items:List<String>, oldPath: String, newPath: String)
