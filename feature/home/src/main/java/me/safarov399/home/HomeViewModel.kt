@@ -4,12 +4,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.safarov399.common.FileConstants.ASCENDING_ORDER
-import me.safarov399.common.FileConstants.DATE_SORTING_TYPE
-import me.safarov399.common.FileConstants.FILE_TYPE
-import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
-import me.safarov399.common.FileConstants.SIZE_SORTING_TYPE
-import me.safarov399.common.FileConstants.TYPE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.ASCENDING_ORDER
+import me.safarov399.common.file.FileConstants.DATE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.FILE_TYPE
+import me.safarov399.common.file.FileConstants.NAME_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.SIZE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.TYPE_SORTING_TYPE
 import me.safarov399.core.base.BaseViewModel
 import me.safarov399.core.storage.StorageConstants.DANGEROUS_DIRECTORIES
 import me.safarov399.core.storage.StorageConstants.DATA_DIRECTORY
@@ -17,7 +17,7 @@ import me.safarov399.core.storage.StorageConstants.OBB_DIRECTORY
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
-import me.safarov399.domain.sorting.AbstractSortingPreferenceRepository
+import me.safarov399.domain.repo.AbstractSortingPreferenceRepository
 import java.io.File
 import javax.inject.Inject
 

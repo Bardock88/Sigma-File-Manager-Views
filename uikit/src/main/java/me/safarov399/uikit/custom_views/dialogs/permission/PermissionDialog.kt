@@ -1,4 +1,4 @@
-package me.safarov399.uikit.custom_views.dialogs
+package me.safarov399.uikit.custom_views.dialogs.permission
 
 import android.app.Activity
 import android.app.Dialog
@@ -9,7 +9,7 @@ import android.view.LayoutInflater
 import android.view.Window
 import me.safarov399.uikit.databinding.PermissionDialogBinding
 
-class PermissionDialog(ctx: Context): Dialog(ctx) {
+class PermissionDialog(ctx: Context) : Dialog(ctx) {
     private val binding: PermissionDialogBinding
 
     init {
@@ -32,13 +32,22 @@ class PermissionDialog(ctx: Context): Dialog(ctx) {
     fun setConfirmButtonText(text: String) {
         binding.permissionDialogConfirmationBtn.text = text
     }
+
     fun setCancelButtonText(text: String) {
         binding.permissionDialogCancelBtn.text = text
     }
+
     fun setTitle(text: String) {
         binding.permissionDialogTitleTv.text = text
     }
+
     fun setDescription(text: String) {
         binding.permissionDialogDescriptionTv.text = text
+    }
+
+    fun setCancelButtonOnClickListener(onClick: () -> Unit) {
+        binding.permissionDialogCancelBtn.setOnClickListener {
+            onClick.invoke()
+        }
     }
 }

@@ -1,4 +1,4 @@
-package me.safarov399.core
+package me.safarov399.core.permission
 
 import android.Manifest
 

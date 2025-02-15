@@ -1,50 +1,61 @@
 package me.safarov399.home
 
 import android.Manifest
-import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
-import android.util.Log
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
-import me.safarov399.common.FileConstants.ASCENDING_ORDER
-import me.safarov399.common.FileConstants.DATE_SORTING_TYPE
-import me.safarov399.common.FileConstants.DESCENDING_ORDER
-import me.safarov399.common.FileConstants.FILE_TYPE
-import me.safarov399.common.FileConstants.FOLDER_TYPE
-import me.safarov399.common.FileConstants.NAME_SORTING_TYPE
-import me.safarov399.common.FileConstants.SIZE_SORTING_TYPE
-import me.safarov399.common.FileConstants.TYPE_SORTING_TYPE
-import me.safarov399.core.PermissionConstants
+import me.safarov399.common.file.FileConstants.ASCENDING_ORDER
+import me.safarov399.common.file.FileConstants.DATE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.DESCENDING_ORDER
+import me.safarov399.common.file.FileConstants.FILE_TYPE
+import me.safarov399.common.file.FileConstants.FOLDER_TYPE
+import me.safarov399.common.file.FileConstants.NAME_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.SIZE_SORTING_TYPE
+import me.safarov399.common.file.FileConstants.TYPE_SORTING_TYPE
+import me.safarov399.common.file.FileExtensions.APK_FILE
+import me.safarov399.common.file.FileExtensions.ARCHIVING_ALGORITHMS
+import me.safarov399.common.file.FileExtensions.COMPRESSION_ALGORITHMS
+import me.safarov399.common.file.FileExtensions.COMPRESSION_AND_ARCHIVE
 import me.safarov399.core.adapter.FileFolderAdapter
-import me.safarov399.core.adapter.OnClickListener
 import me.safarov399.core.base.BaseFragment
+import me.safarov399.core.file.FileHandler
+import me.safarov399.core.listeners.OnClickListener
+import me.safarov399.core.listeners.OnHoldListener
+import me.safarov399.core.navigation.NavigationDestinations.APK_OPERATIONS_CODE
+import me.safarov399.core.navigation.NavigationDestinations.ARCHIVE_OPERATIONS_CODE
+import me.safarov399.core.navigation.NavigationDestinations.FILE_OPERATIONS_CODE
+import me.safarov399.core.navigation.NavigationDestinations.FOLDER_OPERATIONS_CODE
+import me.safarov399.core.permission.PermissionConstants
+import me.safarov399.core.permission.PermissionManager
 import me.safarov399.core.storage.StorageConstants.DEFAULT_DIRECTORY
 import me.safarov399.core.storage.StorageConstants.RESTRICTED_DIRECTORIES
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
+import me.safarov399.home.bottom_sheet.BottomSheetFragment
 import me.safarov399.home.databinding.FragmentHomeBinding
 import me.safarov399.uikit.custom_views.dialogs.CreateFileFolderDialog
-import me.safarov399.uikit.custom_views.dialogs.PermissionDialog
-import java.io.File
+import me.safarov399.uikit.custom_views.dialogs.OnHoldBottomSheetDialog
+import me.safarov399.uikit.custom_views.dialogs.permission.DialogProvider
 
 
 @AndroidEntryPoint
@@ -61,6 +72,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var isAscending = true
     private var sortType: Int = NAME_SORTING_TYPE
 
+
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         for (permission in permissions) {
             if (!permission.value) {
@@ -68,11 +80,21 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             }
         }
 
-        if (!checkStoragePermissions()) {
+        if (!PermissionManager.checkStoragePermissions(this)) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) || !shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                goToSettingsDialog()
+                DialogProvider.goToSettingsDialog(this) { dialog ->
+                    val intent = Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().packageName)
+                    )
+                    startActivity(intent)
+                    dialog.dismiss()
+                    activity?.finish()
+                }
             } else {
-                showPermissionRequestDialog()
+                DialogProvider.showPermissionRequestDialog(this) { dialog ->
+                    dialog.dismiss()
+                    requestStoragePermission()
+                }
             }
         }
     }
@@ -82,25 +104,33 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         ActivityResultContracts.StartActivityForResult()
     ) { _ ->
         if (!Environment.isExternalStorageManager()) {
-            showPermissionRequestDialog()
+            DialogProvider.showPermissionRequestDialog(this) { dialog ->
+                dialog.dismiss()
+                requestStoragePermission()
+            }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         configureViews()
-        if (!checkStoragePermissions()) {
-            showPermissionRequestDialog()
+        if (!PermissionManager.checkStoragePermissions(this)) {
+            DialogProvider.showPermissionRequestDialog(this) { dialog ->
+                dialog.dismiss()
+                requestStoragePermission()
+            }
         }
         handleBackPress()
     }
 
+
     override fun onResume() {
         super.onResume()
-        if (checkStoragePermissions()) {
+        if (PermissionManager.checkStoragePermissions(this)) {
             postEvent(HomeEvent.ChangePath(currentPath))
         }
     }
+
 
     override fun onEffectUpdate(effect: HomeEffect) {
         when (effect) {
@@ -110,6 +140,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             is HomeEffect.FolderCreated -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_created, effect.name, effect.path), Toast.LENGTH_LONG).show()
         }
     }
+
 
     override fun onStateUpdate(state: HomeUiState) {
         currentPath = state.currentPath
@@ -123,7 +154,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         isAscending = state.isAscending
 
         fileFolderAdapter?.setOnClickListener(object : OnClickListener {
-            override fun onClick(position: Int, model: FileFolderModel) {
+            override fun onClickFileFolder(position: Int, model: FileFolderModel) {
                 hideFab()
 
                 if (!isClickable) return // Ignore clicks if interaction is disabled
@@ -148,34 +179,64 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 binding.root.postDelayed({ isClickable = true }, 500)
             }
         }, object : OnClickListener {
-            override fun onClick(position: Int, model: FileFolderModel) {
+            override fun onClickFileFolder(position: Int, model: FileFolderModel) {
                 hideFab()
 
                 if (!isClickable) return // Ignore clicks if interaction is disabled
                 isClickable = false
-
-                val file = File(state.currentPath, (model as FileModel).name)
-                val fileExtension = file.extension
-                val uri = FileProvider.getUriForFile(requireContext(), requireActivity().packageName + ".fileprovider", file)
-
-                if (fileExtension == "apk") {
-                    if (requireActivity().packageManager.canRequestPackageInstalls()) {
-                        installApk(file.absolutePath)
-                    } else {
-                        requestApkInstallPermission()
-                    }
-                } else {
-                    val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension) ?: "*/*"
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(uri, mimeType)
-                        flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    }
-
-                    startActivity(intent)
-                }
+                FileHandler.openFile(state.currentPath, (model as FileModel).name, this@HomeFragment, false)
                 isClickable = true // Reset the flag after handling the intent
             }
         })
+
+        fileFolderAdapter?.setOnHoldListener(
+            object : OnHoldListener {
+                override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
+                    val fragment = BottomSheetFragment()
+                    fragment.apply {
+                        setFileName((model as FolderModel).name)
+                        setOperationsType(FOLDER_OPERATIONS_CODE)
+                        setFilePath(currentPath)
+                        setType(FOLDER_TYPE)
+                    }
+                    val bottomSheet = OnHoldBottomSheetDialog(
+                        fragmentFactory = { fragment },
+                        dismissListener = {
+                            postEvent(HomeEvent.ChangePath(state.currentPath))
+                        }
+                    )
+
+                    if (!bottomSheet.isAdded) {
+                        bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+                    }
+                }
+            }, object : OnHoldListener {
+                override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
+                    val fragment = BottomSheetFragment()
+                    val fileExtension = if ((model as FileModel).name.contains(".")) {
+                        (model).name.substringAfterLast(".")
+                    } else ""
+                    when (fileExtension) {
+                        APK_FILE -> fragment.setOperationsType(APK_OPERATIONS_CODE)
+                        in ARCHIVING_ALGORITHMS -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+                        in COMPRESSION_ALGORITHMS -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+                        in COMPRESSION_AND_ARCHIVE -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+                        else -> fragment.setOperationsType(FILE_OPERATIONS_CODE)
+                    }
+                    fragment.apply {
+                        setFileName(model.name)
+                        setFilePath(currentPath)
+                        setType(FILE_TYPE)
+                    }
+                    val bottomSheet = OnHoldBottomSheetDialog(fragmentFactory = { fragment }, dismissListener = { postEvent(HomeEvent.ChangePath(state.currentPath)) })
+
+
+                    if (!bottomSheet.isAdded) {
+                        bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+                    }
+                }
+            }
+        )
 
         binding.homeNavUp.setOnClickListener {
             if (state.currentPath != DEFAULT_DIRECTORY) {
@@ -190,6 +251,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             }
         }
     }
+
 
     private fun configureViews() {
         rv = binding.homeRv
@@ -223,6 +285,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             }
         }
     }
+
 
     private fun configureSortType(sortType: Int, popup: PopupMenu) {
         when (sortType) {
@@ -264,6 +327,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
+
     private fun configureSortOrder(isAscending: Boolean, popup: PopupMenu) {
         popup.menu.apply {
             findItem(me.safarov399.common.R.id.sort_ascending).isChecked = isAscending
@@ -271,12 +335,22 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
+
     private fun showSortingPopup(view: View) {
         val popup = PopupMenu(requireActivity(), view)
         val popupMenuInflater = popup.menuInflater
         popupMenuInflater.inflate(me.safarov399.common.R.menu.sort_menu, popup.menu)
+
+        val headerItem = popup.menu.findItem(me.safarov399.common.R.id.sort_header)
+        val headerTitle = SpannableString("Sorting Options")
+        headerTitle.setSpan(StyleSpan(Typeface.BOLD), 0, headerTitle.length, 0)
+        headerTitle.setSpan(ForegroundColorSpan(Color.WHITE), 0, headerTitle.length, 0)
+        headerItem.title = headerTitle
+        headerItem.isEnabled = false  // Make it non-clickable
+
         configureSortOrder(isAscending, popup)
         configureSortType(sortType, popup)
+
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 me.safarov399.common.R.id.sort_name -> {
@@ -308,14 +382,14 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 }
 
                 me.safarov399.common.R.id.sort_ascending -> {
-                    isAscending = true      // Update the popup menu immediately
+                    isAscending = true
                     configureSortOrder(true, popup)
                     postEvent(HomeEvent.ChangeSortOrder(ASCENDING_ORDER))
                     postEvent(HomeEvent.ChangePath(currentPath))
                 }
 
                 me.safarov399.common.R.id.sort_descending -> {
-                    isAscending = false     // Update the popup menu immediately
+                    isAscending = false
                     configureSortOrder(false, popup)
                     postEvent(HomeEvent.ChangeSortOrder(DESCENDING_ORDER))
                     postEvent(HomeEvent.ChangePath(currentPath))
@@ -325,6 +399,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
         popup.show()
     }
+
 
     private fun hideFab() {
         binding.apply {
@@ -336,6 +411,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
         areAllFabVisible = false
     }
+
 
     private fun showFab() {
         binding.apply {
@@ -367,6 +443,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressCallback as OnBackPressedCallback)
     }
+
 
     private fun showCreateFileFolderDialog(itemType: Int) {
         CreateFileFolderDialog(requireActivity()).apply {
@@ -414,72 +491,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
-    private fun showPermissionRequestDialog() {
-        PermissionDialog(requireActivity()).apply {
-            setTitle(getString(me.safarov399.common.R.string.permission_dialog_title))
-            setDescription(getString(me.safarov399.common.R.string.permission_dialog_description))
-            setConfirmButtonText(getString(me.safarov399.common.R.string.ok))
-            setCancelButtonText(getString(me.safarov399.common.R.string.cancel))
-            setConfirmationOnClickListener {
-                dismiss()
-                requestStoragePermission()
-            }
-            show()
-        }
-    }
-
-
-    private fun requestApkInstallPermission() {
-        val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-            data = Uri.parse("package:${requireActivity().packageName}")
-        }
-        startActivity(intent)
-    }
-
-
-    private fun installApk(apkUri: String) {
-        val apkFile = File(apkUri)
-        if (!apkFile.exists()) {
-            Log.e("APKInstall", "APK file does not exist: $apkUri")
-            return
-        }
-
-        val fileUri: Uri = FileProvider.getUriForFile(
-            requireActivity(),
-            "${requireActivity().packageName}.fileprovider",
-            apkFile
-        )
-
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(fileUri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-
-        try {
-            startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            Log.e("APKInstall", "No activity found to handle APK installation", e)
-        }
-    }
-
-
-    private fun goToSettingsDialog() {
-        PermissionDialog(requireActivity()).apply {
-            setTitle(getString(me.safarov399.common.R.string.not_granted_title))
-            setDescription(getString(me.safarov399.common.R.string.not_granted_description))
-            setConfirmButtonText(getString(me.safarov399.common.R.string.not_granted_confirm))
-            setCancelButtonText(getString(me.safarov399.common.R.string.not_granted_cancel))
-            setConfirmationOnClickListener {
-                val intent = Intent(
-                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().packageName)
-                )
-                startActivity(intent)
-                dismiss()
-                activity?.finish()
-            }
-            show()
-        }
-    }
 
     private fun requestStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -489,18 +500,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
-    private fun checkStoragePermissions(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            //Android is 11 (R) or above
-            return Environment.isExternalStorageManager()
-        } else {
-            //Below android 11
-            val write = ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            val read = ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)
-
-            return read == PackageManager.PERMISSION_GRANTED && write == PackageManager.PERMISSION_GRANTED
-        }
-    }
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun requestStoragePermissionAndroid11AndHigher() {
@@ -510,6 +509,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         )
         requestAndroid11AndHigherPermissionLauncher.launch(intent)
     }
+
 
     override fun getViewModelClass(): Class<HomeViewModel> = HomeViewModel::class.java
 

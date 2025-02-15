@@ -1,4 +1,4 @@
-package me.safarov399.uikit.custom_views
+package me.safarov399.uikit.custom_views.tiles
 
 import android.content.Context
 import android.util.AttributeSet
