@@ -23,6 +23,7 @@ import me.safarov399.core.navigation.NavigationDestinations.FILE_OPERATIONS_CODE
 import me.safarov399.core.navigation.NavigationDestinations.FOLDER_OPERATIONS_CODE
 import me.safarov399.domain.models.adapter.OnHoldModel
 import me.safarov399.home.databinding.FragmentOnHoldBottomSheetBinding
+import me.safarov399.uikit.custom_views.dialogs.permission.DialogProvider
 
 @AndroidEntryPoint
 class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, BottomSheetViewModel, BottomSheetState, BottomSheetEffect, BottomSheetEvent>() {
@@ -95,8 +96,11 @@ class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, Botto
                     me.safarov399.common.R.string.share -> postEvent(BottomSheetEvent.Share(fileAndPathMerger(fileName!!, filePath!!)))
                     me.safarov399.common.R.string.compress -> postEvent(BottomSheetEvent.Compress(listOf(fileAndPathMerger(fileName!!, filePath!!))))
                     me.safarov399.common.R.string.delete -> {
-                        postEvent(BottomSheetEvent.Delete(listOf(fileAndPathMerger(fileName!!, filePath!!))))
-                        (requireParentFragment() as? BottomSheetDialogFragment)?.dismiss()
+                        val typeStr = if(type == FILE_TYPE) getString(me.safarov399.common.R.string.file) else getString(me.safarov399.common.R.string.folder)
+                        DialogProvider.confirmationDialog(this@BottomSheetFragment, typeStr, fileName!!) {
+                            postEvent(BottomSheetEvent.Delete(listOf(fileAndPathMerger(fileName!!, filePath!!))))
+                            (requireParentFragment() as? BottomSheetDialogFragment)?.dismiss()
+                        }
                     }
 
                     me.safarov399.common.R.string.shred -> postEvent(BottomSheetEvent.Shred(listOf(fileAndPathMerger(fileName!!, filePath!!)), 0))

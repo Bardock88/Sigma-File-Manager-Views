@@ -55,4 +55,6 @@
     <string name="change_permissions">Change Permissions</string>
     <string name="extract">Extract</string>
     <string name="deletion_failure">Some items could not be deleted.</string>
+    <string name="file">file</string>
+    <string name="folder">folder</string>
 </resources>

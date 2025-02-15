@@ -44,4 +44,10 @@ class PermissionDialog(ctx: Context) : Dialog(ctx) {
     fun setDescription(text: String) {
         binding.permissionDialogDescriptionTv.text = text
     }
+
+    fun setCancelButtonOnClickListener(onClick: () -> Unit) {
+        binding.permissionDialogCancelBtn.setOnClickListener {
+            onClick.invoke()
+        }
+    }
 }
