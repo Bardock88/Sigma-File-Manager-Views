@@ -44,6 +44,7 @@ import me.safarov399.core.file.OperationModel
 import me.safarov399.core.file.OperationTypes.COPY
 import me.safarov399.core.file.OperationTypes.NORMAL
 import me.safarov399.core.file.OperationTypes.RENAME
+import me.safarov399.core.file.isNameInvalid
 import me.safarov399.core.listeners.BottomSheetResultListener
 import me.safarov399.core.listeners.OnClickListener
 import me.safarov399.core.listeners.OnHoldListener
@@ -639,15 +640,20 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             }
 
             RENAME -> {
-
                 if (operationModel.file!! in OPERATION_ACCESS_DENIED_DIRECTORIES) {
                     Toast.makeText(requireActivity(), me.safarov399.common.R.string.cannot_rename_requires_root, Toast.LENGTH_SHORT).show()
                 } else {
                     DialogProvider.renameDialog(this, operationModel.file!!.substringAfterLast("/")) {
-                        postEvent(HomeEvent.Rename(operationModel.file!!, it.getText()))
-                        postEvent(HomeEvent.ChangePath(currentPath))
+                        val newName = it.getText()
+                        if(isNameInvalid(newName)) {
+                            Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.name_has_invalid_characters), Toast.LENGTH_SHORT).show()
+                        }
+                        else {
+                            postEvent(HomeEvent.Rename(operationModel.file!!, newName))
+                            postEvent(HomeEvent.ChangePath(currentPath))
+                            it.dismiss()
+                        }
                     }
-
                 }
             }
         }

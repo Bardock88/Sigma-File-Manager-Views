@@ -134,8 +134,17 @@ class HomeViewModel @Inject constructor(
         val oldFile = File(oldName)
         val newPath = fileAndPathMerger(newName, oldName.substringBeforeLast("/"))
         val newFile = File(newPath)
-        if(oldFile.exists()) {
-            oldFile.renameTo(newFile)
+        if (oldFile.exists()) {
+            if (!newFile.exists()) {
+                oldFile.renameTo(newFile)
+            } else {
+                if (newFile.isFile) {
+                    postEffect(HomeEffect.FileAlreadyExists)
+                } else {
+                    postEffect(HomeEffect.FolderAlreadyExists)
+                }
+            }
+
         } else {
             postEffect(HomeEffect.DoesNotExist)
         }

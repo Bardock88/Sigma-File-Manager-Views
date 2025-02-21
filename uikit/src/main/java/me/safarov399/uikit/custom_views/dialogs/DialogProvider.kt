@@ -72,7 +72,6 @@ object DialogProvider {
             setText(oldText)
             setConfirmAction {
                 onConfirm.invoke(this)
-                dismiss()
             }
             setCancelAction {
                 dismiss()
