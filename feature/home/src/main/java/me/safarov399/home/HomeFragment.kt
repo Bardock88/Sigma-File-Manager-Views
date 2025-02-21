@@ -40,8 +40,9 @@ import me.safarov399.common.file.FileExtensions.COMPRESSION_AND_ARCHIVE
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.base.BaseFragment
 import me.safarov399.core.file.FileHandler
-import me.safarov399.core.file.OperationModes.COPY
-import me.safarov399.core.file.OperationModes.NORMAL
+import me.safarov399.core.file.OperationModel
+import me.safarov399.core.file.OperationTypes.COPY
+import me.safarov399.core.file.OperationTypes.NORMAL
 import me.safarov399.core.listeners.BottomSheetResultListener
 import me.safarov399.core.listeners.OnClickListener
 import me.safarov399.core.listeners.OnHoldListener
@@ -52,6 +53,7 @@ import me.safarov399.core.navigation.NavigationDestinations.FOLDER_OPERATIONS_CO
 import me.safarov399.core.permission.PermissionConstants
 import me.safarov399.core.permission.PermissionManager
 import me.safarov399.core.storage.StorageConstants.DEFAULT_DIRECTORY
+import me.safarov399.core.storage.StorageConstants.OPERATION_ACCESS_DENIED_DIRECTORIES
 import me.safarov399.core.storage.StorageConstants.RESTRICTED_DIRECTORIES
 import me.safarov399.domain.models.adapter.FileFolderModel
 import me.safarov399.domain.models.adapter.FileModel
@@ -77,6 +79,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var isAscending = true
     private var sortType: Int = NAME_SORTING_TYPE
     private var operationMode: Int = NORMAL
+    private var operationFiles: List<String>? = null
 
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -144,6 +147,21 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             is HomeEffect.FileCreated -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_created, effect.name, effect.path), Toast.LENGTH_LONG).show()
             HomeEffect.FolderAlreadyExists -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_already_exists), Toast.LENGTH_SHORT).show()
             is HomeEffect.FolderCreated -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.folder_created, effect.name, effect.path), Toast.LENGTH_LONG).show()
+            is HomeEffect.CopiedFileAlreadyExist -> {
+                DialogProvider.confirmCopyOverwriteDialog(this, onConfirm = {
+                    postEvent(HomeEvent.Copy(effect.operationFiles, effect.newPath, true))
+
+                }, onCancel = {
+                    postEvent(HomeEvent.SwitchOperationMode())
+                })
+            }
+
+            HomeEffect.CopySuccessful -> {
+                postEvent(HomeEvent.ChangePath(currentPath))
+                switchNormalMode()
+                Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.copied_to_path, getString(me.safarov399.common.R.string.copied_to), currentPath), Toast.LENGTH_SHORT).show()
+            }
+            HomeEffect.CopyingIntoItself -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.cannot_copy_into_itself), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -152,7 +170,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         if (operationMode == COPY) {
             switchCopyMode()
         }
-
+        operationFiles = state.operationModel.files
         currentPath = state.currentPath
         sortType = state.sortType
         backPressCallback?.isEnabled = currentPath != DEFAULT_DIRECTORY
@@ -167,7 +185,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             COPY -> {
                 fileFolderAdapter?.setOnClickListener(object : OnClickListener {
                     override fun onClickFileFolder(position: Int, model: FileFolderModel) {
-                        folderClick(position, model, state)
+                        folderClick(model, state)
                     }
                 }, object : OnClickListener {
                     override fun onClickFileFolder(position: Int, model: FileFolderModel) {}
@@ -185,22 +203,22 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             NORMAL -> {
                 fileFolderAdapter?.setOnClickListener(object : OnClickListener {
                     override fun onClickFileFolder(position: Int, model: FileFolderModel) {
-                        folderClick(position, model, state)
+                        folderClick(model, state)
                     }
                 }, object : OnClickListener {
                     override fun onClickFileFolder(position: Int, model: FileFolderModel) {
-                        fileClick(position, model, state)
+                        fileClick(model, state)
                     }
                 })
 
                 fileFolderAdapter?.setOnHoldListener(
                     object : OnHoldListener {
                         override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
-                            folderLongPress(position, model, state)
+                            folderLongPress(model, state)
                         }
                     }, object : OnHoldListener {
                         override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
-                            fileLongPress(position, model, state)
+                            fileLongPress(model, state)
                         }
                     }
                 )
@@ -214,9 +232,13 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         binding.homeCancelIv.setOnClickListener {
             switchNormalMode()
         }
+
+        binding.homePasteIv.setOnClickListener {
+            postEvent(HomeEvent.Copy(operationFiles!!, state.currentPath, false))
+        }
     }
 
-    private fun fileLongPress(position: Int, model: FileFolderModel, state: HomeUiState) {
+    private fun fileLongPress(model: FileFolderModel, state: HomeUiState) {
         val fragment = BottomSheetFragment()
         val fileExtension = if ((model as FileModel).name.contains(".")) {
             (model).name.substringAfterLast(".")
@@ -232,6 +254,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             setFileName(model.name)
             setFilePath(currentPath)
             setType(FILE_TYPE)
+            setResultListener(this@HomeFragment)
         }
         val bottomSheet = OnHoldBottomSheetDialog(fragmentFactory = { fragment }, dismissListener = { postEvent(HomeEvent.ChangePath(state.currentPath)) })
 
@@ -241,7 +264,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
-    private fun folderLongPress(position: Int, model: FileFolderModel, state: HomeUiState) {
+    private fun folderLongPress(model: FileFolderModel, state: HomeUiState) {
         val fragment = BottomSheetFragment()
         fragment.apply {
             setFileName((model as FolderModel).name)
@@ -262,7 +285,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
-    private fun fileClick(position: Int, model: FileFolderModel, state: HomeUiState) {
+    private fun fileClick(model: FileFolderModel, state: HomeUiState) {
         hideFab()
 
         if (!isClickable) return // Ignore clicks if interaction is disabled
@@ -271,7 +294,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         isClickable = true // Reset the flag after handling the intent
     }
 
-    private fun folderClick(position: Int, model: FileFolderModel, state: HomeUiState) {
+    private fun folderClick(model: FileFolderModel, state: HomeUiState) {
         hideFab()
 
         if (!isClickable) return // Ignore clicks if interaction is disabled
@@ -415,7 +438,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         popupMenuInflater.inflate(me.safarov399.common.R.menu.sort_menu, popup.menu)
 
         val headerItem = popup.menu.findItem(me.safarov399.common.R.id.sort_header)
-        val headerTitle = SpannableString("Sorting Options")
+        val headerTitle = SpannableString(getString(me.safarov399.common.R.string.sorting_options))
         headerTitle.setSpan(StyleSpan(Typeface.BOLD), 0, headerTitle.length, 0)
         headerTitle.setSpan(ForegroundColorSpan(Color.WHITE), 0, headerTitle.length, 0)
         headerItem.title = headerTitle
@@ -597,12 +620,20 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         backPressCallback = null
     }
 
-    override fun onBottomSheetResult(result: Int) {
-        when (result) {
+    override fun onBottomSheetResult(operationModel: OperationModel) {
+        when (operationModel.operationType) {
             COPY -> {
-                this.operationMode = COPY
-                postEvent(HomeEvent.SwitchOperationMode(result))
-                Toast.makeText(requireActivity(), "Select destination folder.", Toast.LENGTH_SHORT).show()
+                for (file in operationModel.files) {
+                    if (file in OPERATION_ACCESS_DENIED_DIRECTORIES) {
+                        Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.cannot_copy_requires_root), Toast.LENGTH_SHORT).show()
+                        break
+                    } else {
+                        this.operationMode = COPY
+                        this.operationFiles = operationModel.files
+                        postEvent(HomeEvent.SwitchOperationMode(operationModel))
+                        Toast.makeText(requireActivity(), me.safarov399.common.R.string.select_destination_folder, Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
     }

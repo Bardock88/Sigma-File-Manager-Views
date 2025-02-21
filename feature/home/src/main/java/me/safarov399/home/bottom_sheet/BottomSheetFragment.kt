@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
-import me.safarov399.common.file.FileConstants
 import me.safarov399.common.file.FileConstants.FILE_TYPE
 import me.safarov399.core.adapter.BottomSheetAdapter
 import me.safarov399.core.base.BaseFragment
@@ -16,7 +15,8 @@ import me.safarov399.core.file.FileFolderOperationsConstants.ARCHIVE_OPERATIONS
 import me.safarov399.core.file.FileFolderOperationsConstants.FILE_OPERATIONS_LIST
 import me.safarov399.core.file.FileFolderOperationsConstants.FOLDER_OPERATIONS_LIST
 import me.safarov399.core.file.FileHandler
-import me.safarov399.core.file.OperationModes
+import me.safarov399.core.file.OperationModel
+import me.safarov399.core.file.OperationTypes
 import me.safarov399.core.file.fileAndPathMerger
 import me.safarov399.core.listeners.BottomSheetResultListener
 import me.safarov399.core.listeners.OnClickListener
@@ -37,8 +37,8 @@ class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, Botto
         this.resultListener = listener
     }
 
-    private fun sendResultToHomeFragment(result: Int) {
-        resultListener?.onBottomSheetResult(result)
+    private fun sendOperationToHomeFragment(operation: OperationModel) {
+        resultListener?.onBottomSheetResult(operation)
         (requireParentFragment() as? BottomSheetDialogFragment)?.dismiss()
     }
 
@@ -111,7 +111,7 @@ class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, Botto
                     me.safarov399.common.R.string.compress -> postEvent(BottomSheetEvent.Compress(listOf(fileAndPathMerger(fileName!!, filePath!!))))
                     me.safarov399.common.R.string.delete -> {
                         val typeStr = if(type == FILE_TYPE) getString(me.safarov399.common.R.string.file) else getString(me.safarov399.common.R.string.folder)
-                        DialogProvider.confirmationDialog(this@BottomSheetFragment, typeStr, fileName!!) {
+                        DialogProvider.deleteConfirmationDialog(this@BottomSheetFragment, typeStr, fileName!!) {
                             postEvent(BottomSheetEvent.Delete(listOf(fileAndPathMerger(fileName!!, filePath!!))))
                             (requireParentFragment() as? BottomSheetDialogFragment)?.dismiss()
                         }
@@ -120,7 +120,9 @@ class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, Botto
                     me.safarov399.common.R.string.shred -> postEvent(BottomSheetEvent.Shred(listOf(fileAndPathMerger(fileName!!, filePath!!)), 0))
                     me.safarov399.common.R.string.rename -> postEvent(BottomSheetEvent.Rename(filePath!!, fileName!!, ""))
                     me.safarov399.common.R.string.copy -> {
-                        sendResultToHomeFragment(OperationModes.COPY)
+                        val selectedFiles = listOf(fileAndPathMerger(fileName!!, filePath!!))
+                        val operation = OperationModel(OperationTypes.COPY, selectedFiles)
+                        sendOperationToHomeFragment(operation)
                     }
                     me.safarov399.common.R.string.move_to -> postEvent(BottomSheetEvent.Move(listOf(fileAndPathMerger(fileName!!, filePath!!)), filePath!!, ""))
                     me.safarov399.common.R.string.add_to_favorites -> postEvent(BottomSheetEvent.AddToFavorites(listOf(fileAndPathMerger(fileName!!, filePath!!))))
