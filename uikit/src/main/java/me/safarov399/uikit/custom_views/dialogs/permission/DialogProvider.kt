@@ -6,10 +6,10 @@ object DialogProvider {
 
     fun deleteConfirmationDialog(fragment: Fragment, type: String, name: String, onClick: (GenericDialog) -> Unit) {
         GenericDialog(fragment.requireActivity()).apply {
-            setTitle("Are you sure?")
-            setDescription("Are you sure you want to delete the $type $name?")
-            setConfirmButtonText("Yes")
-            setCancelButtonText("Cancel")
+            setTitle(fragment.getString(me.safarov399.common.R.string.are_you_sure))
+            setDescription(fragment.getString(me.safarov399.common.R.string.are_you_sure_desc_full, fragment.getString(me.safarov399.common.R.string.are_you_sure_desc_partial), type, name ))
+            setConfirmButtonText(fragment.getString(me.safarov399.common.R.string.yes))
+            setCancelButtonText(fragment.getString(me.safarov399.common.R.string.cancel))
             setConfirmationOnClickListener {
                 onClick.invoke(this)
                 dismiss()
@@ -49,10 +49,10 @@ object DialogProvider {
 
     fun confirmCopyOverwriteDialog(fragment: Fragment, onConfirm: (GenericDialog) -> Unit, onCancel: (GenericDialog) -> Unit) {
         GenericDialog(fragment.requireActivity()).apply{
-            setTitle("Cannot copy here")
-            setDescription("The destination already exists. Do you want to overwrite?")
-            setConfirmButtonText("Yes")
-            setCancelButtonText("No")
+            setTitle(fragment.getString(me.safarov399.common.R.string.cannot_copy_here))
+            setDescription(fragment.getString(me.safarov399.common.R.string.destination_already_exists))
+            setConfirmButtonText(fragment.getString(me.safarov399.common.R.string.yes))
+            setCancelButtonText(fragment.getString(me.safarov399.common.R.string.no))
             setConfirmationOnClickListener {
                 onConfirm.invoke(this)
                 dismiss()
