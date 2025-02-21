@@ -26,7 +26,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 import me.safarov399.common.file.FileConstants.ASCENDING_ORDER
-import me.safarov399.common.file.FileConstants.COPY
 import me.safarov399.common.file.FileConstants.DATE_SORTING_TYPE
 import me.safarov399.common.file.FileConstants.DESCENDING_ORDER
 import me.safarov399.common.file.FileConstants.FILE_TYPE
@@ -41,6 +40,8 @@ import me.safarov399.common.file.FileExtensions.COMPRESSION_AND_ARCHIVE
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.base.BaseFragment
 import me.safarov399.core.file.FileHandler
+import me.safarov399.core.file.OperationModes.COPY
+import me.safarov399.core.file.OperationModes.NORMAL
 import me.safarov399.core.listeners.BottomSheetResultListener
 import me.safarov399.core.listeners.OnClickListener
 import me.safarov399.core.listeners.OnHoldListener
@@ -75,7 +76,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var areAllFabVisible = false
     private var isAscending = true
     private var sortType: Int = NAME_SORTING_TYPE
-    private var result: Int? = null
+    private var operationMode: Int = NORMAL
 
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -148,7 +149,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
 
     override fun onStateUpdate(state: HomeUiState) {
-        if(result == COPY) {
+        if (operationMode == COPY) {
             switchCopyMode()
         }
 
@@ -162,27 +163,49 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
         isAscending = state.isAscending
 
-        fileFolderAdapter?.setOnClickListener(object : OnClickListener {
-            override fun onClickFileFolder(position: Int, model: FileFolderModel) {
-                folderClick(position, model, state)
-            }
-        }, object : OnClickListener {
-            override fun onClickFileFolder(position: Int, model: FileFolderModel) {
-                fileClick(position, model, state)
-            }
-        })
+        when (this.operationMode) {
+            COPY -> {
+                fileFolderAdapter?.setOnClickListener(object : OnClickListener {
+                    override fun onClickFileFolder(position: Int, model: FileFolderModel) {
+                        folderClick(position, model, state)
+                    }
+                }, object : OnClickListener {
+                    override fun onClickFileFolder(position: Int, model: FileFolderModel) {}
+                })
 
-        fileFolderAdapter?.setOnHoldListener(
-            object : OnHoldListener {
-                override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
-                    folderLongPress(position, model, state)
-                }
-            }, object : OnHoldListener {
-                override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
-                    fileLongPress(position, model, state)
-                }
+                fileFolderAdapter?.setOnHoldListener(
+                    object : OnHoldListener {
+                        override fun onHoldFileFolder(position: Int, model: FileFolderModel) {}
+                    }, object : OnHoldListener {
+                        override fun onHoldFileFolder(position: Int, model: FileFolderModel) {}
+                    }
+                )
             }
-        )
+
+            NORMAL -> {
+                fileFolderAdapter?.setOnClickListener(object : OnClickListener {
+                    override fun onClickFileFolder(position: Int, model: FileFolderModel) {
+                        folderClick(position, model, state)
+                    }
+                }, object : OnClickListener {
+                    override fun onClickFileFolder(position: Int, model: FileFolderModel) {
+                        fileClick(position, model, state)
+                    }
+                })
+
+                fileFolderAdapter?.setOnHoldListener(
+                    object : OnHoldListener {
+                        override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
+                            folderLongPress(position, model, state)
+                        }
+                    }, object : OnHoldListener {
+                        override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
+                            fileLongPress(position, model, state)
+                        }
+                    }
+                )
+            }
+        }
 
         binding.homeNavUp.setOnClickListener {
             navigateUp(state)
@@ -272,6 +295,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         // Re-enable interaction after a short delay
         binding.root.postDelayed({ isClickable = true }, 500)
     }
+
     private fun switchCopyMode() {
         binding.apply {
             homeCancelIv.visibility = VISIBLE
@@ -280,10 +304,12 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     }
 
     private fun switchNormalMode() {
+        this.operationMode = NORMAL
         binding.apply {
             homeCancelIv.visibility = GONE
             homePasteIv.visibility = GONE
         }
+        postEvent(HomeEvent.SwitchOperationMode())
     }
 
     private fun navigateUp(state: HomeUiState) {
@@ -572,10 +598,12 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     }
 
     override fun onBottomSheetResult(result: Int) {
-        this.result = result
-        when(result) {
-            COPY -> switchCopyMode()
-            else -> switchNormalMode()
+        when (result) {
+            COPY -> {
+                this.operationMode = COPY
+                postEvent(HomeEvent.SwitchOperationMode(result))
+                Toast.makeText(requireActivity(), "Select destination folder.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }

@@ -67,6 +67,14 @@ class HomeViewModel @Inject constructor(
                     )
                 )
             }
+
+            is HomeEvent.SwitchOperationMode -> {
+                setState(
+                    getCurrentState().copy(
+                        operationMode = event.operationMode
+                    )
+                )
+            }
         }
     }
 
