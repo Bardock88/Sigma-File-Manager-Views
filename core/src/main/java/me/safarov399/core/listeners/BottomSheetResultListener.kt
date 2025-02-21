@@ -1,5 +1,5 @@
 package me.safarov399.core.listeners
 
 interface BottomSheetResultListener {
-    fun onBottomSheetResult(result: String)
+    fun onBottomSheetResult(result: Int)
 }

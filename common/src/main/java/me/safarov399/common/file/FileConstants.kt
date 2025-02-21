@@ -11,4 +11,6 @@ object FileConstants {
 
     const val ASCENDING_ORDER = 6
     const val DESCENDING_ORDER = 7
+
+    const val COPY = 8
 }

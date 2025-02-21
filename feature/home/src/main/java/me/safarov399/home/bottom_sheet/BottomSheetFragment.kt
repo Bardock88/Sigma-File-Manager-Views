@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
+import me.safarov399.common.file.FileConstants
 import me.safarov399.common.file.FileConstants.FILE_TYPE
 import me.safarov399.core.adapter.BottomSheetAdapter
 import me.safarov399.core.base.BaseFragment
@@ -35,7 +36,7 @@ class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, Botto
         this.resultListener = listener
     }
 
-    private fun sendResultToHomeFragment(result: String) {
+    private fun sendResultToHomeFragment(result: Int) {
         resultListener?.onBottomSheetResult(result)
         (requireParentFragment() as? BottomSheetDialogFragment)?.dismiss()
     }
@@ -118,7 +119,7 @@ class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, Botto
                     me.safarov399.common.R.string.shred -> postEvent(BottomSheetEvent.Shred(listOf(fileAndPathMerger(fileName!!, filePath!!)), 0))
                     me.safarov399.common.R.string.rename -> postEvent(BottomSheetEvent.Rename(filePath!!, fileName!!, ""))
                     me.safarov399.common.R.string.copy -> {
-                        sendResultToHomeFragment("\n\n\n Copied! \n\n\n")
+                        sendResultToHomeFragment(FileConstants.COPY)
                     }
                     me.safarov399.common.R.string.move_to -> postEvent(BottomSheetEvent.Move(listOf(fileAndPathMerger(fileName!!, filePath!!)), filePath!!, ""))
                     me.safarov399.common.R.string.add_to_favorites -> postEvent(BottomSheetEvent.AddToFavorites(listOf(fileAndPathMerger(fileName!!, filePath!!))))

@@ -14,6 +14,8 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -24,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 import me.safarov399.common.file.FileConstants.ASCENDING_ORDER
+import me.safarov399.common.file.FileConstants.COPY
 import me.safarov399.common.file.FileConstants.DATE_SORTING_TYPE
 import me.safarov399.common.file.FileConstants.DESCENDING_ORDER
 import me.safarov399.common.file.FileConstants.FILE_TYPE
@@ -72,6 +75,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     private var areAllFabVisible = false
     private var isAscending = true
     private var sortType: Int = NAME_SORTING_TYPE
+    private var result: Int? = null
 
 
     private val requestAndroid10AndBelowPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -144,6 +148,13 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
 
     override fun onStateUpdate(state: HomeUiState) {
+
+        println("\n\n\n State Updated: result is ${this.result}")
+
+        if(result == COPY) {
+            switchCopyMode()
+        }
+
         currentPath = state.currentPath
         sortType = state.sortType
         backPressCallback?.isEnabled = currentPath != DEFAULT_DIRECTORY
@@ -241,16 +252,38 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         )
 
         binding.homeNavUp.setOnClickListener {
-            if (state.currentPath != DEFAULT_DIRECTORY) {
-                hideFab()
-                val nextPath = state.currentPath.substringBeforeLast("/")
-                postEvent(
-                    HomeEvent.ChangePath(
-                        nextPath
-                    )
+            navigateUp(state)
+        }
+
+        binding.homeCancelIv.setOnClickListener {
+            switchNormalMode()
+        }
+    }
+
+    private fun switchCopyMode() {
+        binding.apply {
+            homeCancelIv.visibility = VISIBLE
+            homePasteIv.visibility = VISIBLE
+        }
+    }
+
+    private fun switchNormalMode() {
+        binding.apply {
+            homeCancelIv.visibility = GONE
+            homePasteIv.visibility = GONE
+        }
+    }
+
+    private fun navigateUp(state: HomeUiState) {
+        if (state.currentPath != DEFAULT_DIRECTORY) {
+            hideFab()
+            val nextPath = state.currentPath.substringBeforeLast("/")
+            postEvent(
+                HomeEvent.ChangePath(
+                    nextPath
                 )
-                binding.pathTv.text = nextPath
-            }
+            )
+            binding.pathTv.text = nextPath
         }
     }
 
@@ -407,8 +440,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         binding.apply {
             homeCreateFileFab.hide()
             homeCreateFolderFab.hide()
-            homeCreateFolderTv.visibility = View.GONE
-            homeCreateFileTv.visibility = View.GONE
+            homeCreateFolderTv.visibility = GONE
+            homeCreateFileTv.visibility = GONE
             homeCreateEfab.shrink()
         }
         areAllFabVisible = false
@@ -419,8 +452,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         binding.apply {
             homeCreateFileFab.show()
             homeCreateFolderFab.show()
-            homeCreateFolderTv.visibility = View.VISIBLE
-            homeCreateFileTv.visibility = View.VISIBLE
+            homeCreateFolderTv.visibility = VISIBLE
+            homeCreateFileTv.visibility = VISIBLE
             homeCreateEfab.extend()
         }
         areAllFabVisible = true
@@ -526,7 +559,11 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         backPressCallback = null
     }
 
-    override fun onBottomSheetResult(result: String) {
-        println("Received result from BottomSheetFragment: $result")
+    override fun onBottomSheetResult(result: Int) {
+        this.result = result
+        when(result) {
+            COPY -> switchCopyMode()
+            else -> switchNormalMode()
+        }
     }
 }
