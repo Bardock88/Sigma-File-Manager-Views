@@ -9,7 +9,7 @@ import android.view.LayoutInflater
 import android.view.Window
 import me.safarov399.uikit.databinding.PermissionDialogBinding
 
-class PermissionDialog(ctx: Context) : Dialog(ctx) {
+class GenericDialog(ctx: Context) : Dialog(ctx) {
     private val binding: PermissionDialogBinding
 
     init {

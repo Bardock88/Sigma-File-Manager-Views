@@ -57,4 +57,20 @@
     <string name="deletion_failure">Some items could not be deleted.</string>
     <string name="file">file</string>
     <string name="folder">folder</string>
+    <string name="cannot_copy_into_itself">Cannot copy into itself or subdirectories.</string>
+    <string name="copied_to_path">%1$s %2$s</string>
+    <string name="copied_to">File copied to</string>
+    <string name="cannot_copy_here">Cannot copy here</string>
+    <string name="cannot_copy_requires_root">This folder cannot be copied. Requires root access.</string>
+    <string name="select_destination_folder">Select destination folder</string>
+    <string name="sorting_options">Sorting Options</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="are_you_sure_desc_partial">Are you sure you want to delete the </string>
+    <string name="are_you_sure_desc_full">%1$s %2$s %3$s</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="destination_already_exists">The destination already exists. Do you want to overwrite?</string>
+    <string name="cancel_copying">Cancel copying operation.</string>
+    <string name="paste_here">Paste here</string>
+    <string name="extended_floating_action_button_text">Create new file or folder</string>
 </resources>
