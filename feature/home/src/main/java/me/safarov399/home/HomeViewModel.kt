@@ -11,6 +11,7 @@ import me.safarov399.common.file.FileConstants.NAME_SORTING_TYPE
 import me.safarov399.common.file.FileConstants.SIZE_SORTING_TYPE
 import me.safarov399.common.file.FileConstants.TYPE_SORTING_TYPE
 import me.safarov399.core.base.BaseViewModel
+import me.safarov399.core.file.fileAndPathMerger
 import me.safarov399.core.storage.StorageConstants.DANGEROUS_DIRECTORIES
 import me.safarov399.core.storage.StorageConstants.DATA_DIRECTORY
 import me.safarov399.core.storage.StorageConstants.OBB_DIRECTORY
@@ -79,6 +80,10 @@ class HomeViewModel @Inject constructor(
             is HomeEvent.Copy -> {
                 copy(event.filePaths, event.newPath, event.overwrite)
             }
+
+            is HomeEvent.Rename -> {
+                rename(event.oldName, event.newName)
+            }
         }
     }
 
@@ -102,7 +107,7 @@ class HomeViewModel @Inject constructor(
         var problemWithCopying = false
         for (filePath in filePaths) {
             try {
-                if(!isCopyingIntoItself(filePath, newPath)) {
+                if (!isCopyingIntoItself(filePath, newPath)) {
                     val file = File(filePath)
                     val destination = File(newPath, file.name)
                     file.copyRecursively(destination, overwrite)   // this function writes the contents of a directory instead of itself, which is why a new variable called destination has been created.
@@ -116,13 +121,24 @@ class HomeViewModel @Inject constructor(
                 postEffect(HomeEffect.CopiedFileAlreadyExist(e.file.name, operationFiles = filePaths, newPath))
             }
         }
-        if(!problemWithCopying) {
+        if (!problemWithCopying) {
             postEffect(HomeEffect.CopySuccessful)
         }
     }
 
     private fun isCopyingIntoItself(sourcePath: String, destinationPath: String): Boolean {
         return destinationPath.startsWith(sourcePath) // Prevents self-copy and subfolder copy
+    }
+
+    private fun rename(oldName: String, newName: String) {
+        val oldFile = File(oldName)
+        val newPath = fileAndPathMerger(newName, oldName.substringBeforeLast("/"))
+        val newFile = File(newPath)
+        if(oldFile.exists()) {
+            oldFile.renameTo(newFile)
+        } else {
+            postEffect(HomeEffect.DoesNotExist)
+        }
     }
 
     private fun createFileFolder(name: String, path: String, type: Int) {

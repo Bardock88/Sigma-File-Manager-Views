@@ -45,9 +45,6 @@ class BottomSheetViewModel @Inject constructor(
                 repository.checksum(event.path)
             }
 
-            is BottomSheetEvent.Copy -> {
-                repository.copy(event.items, event.oldPath, event.newPath)
-            }
 
             is BottomSheetEvent.CreateShortcut -> {
 

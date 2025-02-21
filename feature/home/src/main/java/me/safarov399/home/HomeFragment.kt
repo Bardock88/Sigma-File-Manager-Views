@@ -43,6 +43,7 @@ import me.safarov399.core.file.FileHandler
 import me.safarov399.core.file.OperationModel
 import me.safarov399.core.file.OperationTypes.COPY
 import me.safarov399.core.file.OperationTypes.NORMAL
+import me.safarov399.core.file.OperationTypes.RENAME
 import me.safarov399.core.listeners.BottomSheetResultListener
 import me.safarov399.core.listeners.OnClickListener
 import me.safarov399.core.listeners.OnHoldListener
@@ -60,9 +61,9 @@ import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.home.bottom_sheet.BottomSheetFragment
 import me.safarov399.home.databinding.FragmentHomeBinding
-import me.safarov399.uikit.custom_views.dialogs.CreateFileFolderDialog
+import me.safarov399.uikit.custom_views.dialogs.DialogProvider
+import me.safarov399.uikit.custom_views.dialogs.EditTextDialog
 import me.safarov399.uikit.custom_views.dialogs.OnHoldBottomSheetDialog
-import me.safarov399.uikit.custom_views.dialogs.permission.DialogProvider
 
 
 @AndroidEntryPoint
@@ -150,7 +151,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             is HomeEffect.CopiedFileAlreadyExist -> {
                 DialogProvider.confirmCopyOverwriteDialog(this, onConfirm = {
                     postEvent(HomeEvent.Copy(effect.operationFiles, effect.newPath, true))
-
                 }, onCancel = {
                     postEvent(HomeEvent.SwitchOperationMode())
                 })
@@ -161,7 +161,9 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 switchNormalMode()
                 Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.copied_to_path, getString(me.safarov399.common.R.string.copied_to), currentPath), Toast.LENGTH_SHORT).show()
             }
+
             HomeEffect.CopyingIntoItself -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.cannot_copy_into_itself), Toast.LENGTH_SHORT).show()
+            HomeEffect.DoesNotExist -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_does_not_exist), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -542,7 +544,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
 
     private fun showCreateFileFolderDialog(itemType: Int) {
-        CreateFileFolderDialog(requireActivity()).apply {
+        EditTextDialog(requireActivity()).apply {
             if (itemType == FILE_TYPE) {
                 setTitle(getString(me.safarov399.common.R.string.create_new_file))
                 setHint(getString(me.safarov399.common.R.string.enter_file_name))
@@ -623,7 +625,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     override fun onBottomSheetResult(operationModel: OperationModel) {
         when (operationModel.operationType) {
             COPY -> {
-                for (file in operationModel.files) {
+                for (file in operationModel.files!!) {
                     if (file in OPERATION_ACCESS_DENIED_DIRECTORIES) {
                         Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.cannot_copy_requires_root), Toast.LENGTH_SHORT).show()
                         break
@@ -633,6 +635,19 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                         postEvent(HomeEvent.SwitchOperationMode(operationModel))
                         Toast.makeText(requireActivity(), me.safarov399.common.R.string.select_destination_folder, Toast.LENGTH_SHORT).show()
                     }
+                }
+            }
+
+            RENAME -> {
+
+                if (operationModel.file!! in OPERATION_ACCESS_DENIED_DIRECTORIES) {
+                    Toast.makeText(requireActivity(), me.safarov399.common.R.string.cannot_rename_requires_root, Toast.LENGTH_SHORT).show()
+                } else {
+                    DialogProvider.renameDialog(this, operationModel.file!!.substringAfterLast("/")) {
+                        postEvent(HomeEvent.Rename(operationModel.file!!, it.getText()))
+                        postEvent(HomeEvent.ChangePath(currentPath))
+                    }
+
                 }
             }
         }

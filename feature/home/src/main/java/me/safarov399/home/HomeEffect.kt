@@ -8,4 +8,5 @@ sealed class HomeEffect {
     data class CopiedFileAlreadyExist(val name: String, val operationFiles: List<String>, val newPath: String): HomeEffect()
     data object CopySuccessful: HomeEffect()
     data object CopyingIntoItself: HomeEffect()
+    data object DoesNotExist: HomeEffect()
 }
