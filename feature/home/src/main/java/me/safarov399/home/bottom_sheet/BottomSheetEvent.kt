@@ -16,7 +16,6 @@ sealed class BottomSheetEvent {
     data class Delete(val paths: List<String>) : BottomSheetEvent()
     data class Shred(val paths: List<String>, val overWriteCount: Int) : BottomSheetEvent()
     data class Rename(val path: String, val oldName: String, val newName: String) : BottomSheetEvent()
-    data class Copy(val items: List<String>, val oldPath: String, val newPath: String) : BottomSheetEvent()
     data class Move(val items: List<String>, val oldPath: String, val newPath: String) : BottomSheetEvent()
     data class AddToFavorites(val paths: List<String>) : BottomSheetEvent()
     data class Extract(val path: String, val extractionPath: String) : BottomSheetEvent()

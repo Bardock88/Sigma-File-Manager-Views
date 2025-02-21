@@ -73,4 +73,6 @@
     <string name="cancel_copying">Cancel copying operation.</string>
     <string name="paste_here">Paste here</string>
     <string name="extended_floating_action_button_text">Create new file or folder</string>
+    <string name="cannot_rename_requires_root">Cannot rename this folder. Requires root access.</string>
+    <string name="file_does_not_exist">File does not exist</string>
 </resources>

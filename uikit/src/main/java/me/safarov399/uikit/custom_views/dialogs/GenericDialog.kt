@@ -1,4 +1,4 @@
-package me.safarov399.uikit.custom_views.dialogs.permission
+package me.safarov399.uikit.custom_views.dialogs
 
 import android.app.Activity
 import android.app.Dialog
