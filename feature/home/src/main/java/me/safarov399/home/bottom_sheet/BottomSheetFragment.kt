@@ -16,6 +16,7 @@ import me.safarov399.core.file.FileFolderOperationsConstants.FILE_OPERATIONS_LIS
 import me.safarov399.core.file.FileFolderOperationsConstants.FOLDER_OPERATIONS_LIST
 import me.safarov399.core.file.FileHandler
 import me.safarov399.core.file.fileAndPathMerger
+import me.safarov399.core.listeners.BottomSheetResultListener
 import me.safarov399.core.listeners.OnClickListener
 import me.safarov399.core.navigation.NavigationDestinations.APK_OPERATIONS_CODE
 import me.safarov399.core.navigation.NavigationDestinations.ARCHIVE_OPERATIONS_CODE
@@ -27,6 +28,17 @@ import me.safarov399.uikit.custom_views.dialogs.permission.DialogProvider
 
 @AndroidEntryPoint
 class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, BottomSheetViewModel, BottomSheetState, BottomSheetEffect, BottomSheetEvent>() {
+
+    private var resultListener: BottomSheetResultListener? = null
+
+    fun setResultListener(listener: BottomSheetResultListener) {
+        this.resultListener = listener
+    }
+
+    private fun sendResultToHomeFragment(result: String) {
+        resultListener?.onBottomSheetResult(result)
+        (requireParentFragment() as? BottomSheetDialogFragment)?.dismiss()
+    }
 
     private var operationsType: Int = 0
     private var adapter: BottomSheetAdapter? = null
@@ -105,7 +117,9 @@ class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, Botto
 
                     me.safarov399.common.R.string.shred -> postEvent(BottomSheetEvent.Shred(listOf(fileAndPathMerger(fileName!!, filePath!!)), 0))
                     me.safarov399.common.R.string.rename -> postEvent(BottomSheetEvent.Rename(filePath!!, fileName!!, ""))
-                    me.safarov399.common.R.string.copy -> postEvent(BottomSheetEvent.Copy(listOf(fileAndPathMerger(fileName!!, filePath!!)), filePath!!, ""))
+                    me.safarov399.common.R.string.copy -> {
+                        sendResultToHomeFragment("\n\n\n Copied! \n\n\n")
+                    }
                     me.safarov399.common.R.string.move_to -> postEvent(BottomSheetEvent.Move(listOf(fileAndPathMerger(fileName!!, filePath!!)), filePath!!, ""))
                     me.safarov399.common.R.string.add_to_favorites -> postEvent(BottomSheetEvent.AddToFavorites(listOf(fileAndPathMerger(fileName!!, filePath!!))))
                     me.safarov399.common.R.string.extract -> postEvent(BottomSheetEvent.Extract(fileAndPathMerger(fileName!!, filePath!!), ""))

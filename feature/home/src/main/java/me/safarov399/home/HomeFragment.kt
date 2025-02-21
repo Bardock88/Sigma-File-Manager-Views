@@ -38,6 +38,7 @@ import me.safarov399.common.file.FileExtensions.COMPRESSION_AND_ARCHIVE
 import me.safarov399.core.adapter.FileFolderAdapter
 import me.safarov399.core.base.BaseFragment
 import me.safarov399.core.file.FileHandler
+import me.safarov399.core.listeners.BottomSheetResultListener
 import me.safarov399.core.listeners.OnClickListener
 import me.safarov399.core.listeners.OnHoldListener
 import me.safarov399.core.navigation.NavigationDestinations.APK_OPERATIONS_CODE
@@ -59,7 +60,7 @@ import me.safarov399.uikit.custom_views.dialogs.permission.DialogProvider
 
 
 @AndroidEntryPoint
-class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiState, HomeEffect, HomeEvent>() {
+class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiState, HomeEffect, HomeEvent>(), BottomSheetResultListener {
 
     private var fileFolderAdapter: FileFolderAdapter? = null
     private var rv: RecyclerView? = null
@@ -198,6 +199,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                         setOperationsType(FOLDER_OPERATIONS_CODE)
                         setFilePath(currentPath)
                         setType(FOLDER_TYPE)
+                        setResultListener(this@HomeFragment)
                     }
                     val bottomSheet = OnHoldBottomSheetDialog(
                         fragmentFactory = { fragment },
@@ -522,5 +524,9 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         rv = null
         fileFolderAdapter = null
         backPressCallback = null
+    }
+
+    override fun onBottomSheetResult(result: String) {
+        println("Received result from BottomSheetFragment: $result")
     }
 }

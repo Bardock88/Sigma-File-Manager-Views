@@ -44,5 +44,4 @@ class OnHoldBottomSheetDialog(
         super.onDismiss(dialog)
         dismissListener?.invoke()
     }
-
 }
