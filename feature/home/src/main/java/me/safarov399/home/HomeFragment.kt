@@ -148,9 +148,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
 
     override fun onStateUpdate(state: HomeUiState) {
-
-        println("\n\n\n State Updated: result is ${this.result}")
-
         if(result == COPY) {
             switchCopyMode()
         }
@@ -167,86 +164,22 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
         fileFolderAdapter?.setOnClickListener(object : OnClickListener {
             override fun onClickFileFolder(position: Int, model: FileFolderModel) {
-                hideFab()
-
-                if (!isClickable) return // Ignore clicks if interaction is disabled
-                isClickable = false
-
-                val folderName = (model as FolderModel).name
-                val temporaryCurrentPath = if (state.currentPath.endsWith("/")) {
-                    state.currentPath + folderName
-                } else {
-                    "${state.currentPath}/$folderName"
-                }
-
-                if (temporaryCurrentPath !in RESTRICTED_DIRECTORIES) {
-                    postEvent(HomeEvent.ChangePath(temporaryCurrentPath))
-                    state.currentPath = temporaryCurrentPath
-                }
-                binding.pathTv.text = state.currentPath
-
-                currentPath = state.currentPath
-
-                // Re-enable interaction after a short delay
-                binding.root.postDelayed({ isClickable = true }, 500)
+                folderClick(position, model, state)
             }
         }, object : OnClickListener {
             override fun onClickFileFolder(position: Int, model: FileFolderModel) {
-                hideFab()
-
-                if (!isClickable) return // Ignore clicks if interaction is disabled
-                isClickable = false
-                FileHandler.openFile(state.currentPath, (model as FileModel).name, this@HomeFragment, false)
-                isClickable = true // Reset the flag after handling the intent
+                fileClick(position, model, state)
             }
         })
 
         fileFolderAdapter?.setOnHoldListener(
             object : OnHoldListener {
                 override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
-                    val fragment = BottomSheetFragment()
-                    fragment.apply {
-                        setFileName((model as FolderModel).name)
-                        setOperationsType(FOLDER_OPERATIONS_CODE)
-                        setFilePath(currentPath)
-                        setType(FOLDER_TYPE)
-                        setResultListener(this@HomeFragment)
-                    }
-                    val bottomSheet = OnHoldBottomSheetDialog(
-                        fragmentFactory = { fragment },
-                        dismissListener = {
-                            postEvent(HomeEvent.ChangePath(state.currentPath))
-                        }
-                    )
-
-                    if (!bottomSheet.isAdded) {
-                        bottomSheet.show(parentFragmentManager, bottomSheet.tag)
-                    }
+                    folderLongPress(position, model, state)
                 }
             }, object : OnHoldListener {
                 override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
-                    val fragment = BottomSheetFragment()
-                    val fileExtension = if ((model as FileModel).name.contains(".")) {
-                        (model).name.substringAfterLast(".")
-                    } else ""
-                    when (fileExtension) {
-                        APK_FILE -> fragment.setOperationsType(APK_OPERATIONS_CODE)
-                        in ARCHIVING_ALGORITHMS -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
-                        in COMPRESSION_ALGORITHMS -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
-                        in COMPRESSION_AND_ARCHIVE -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
-                        else -> fragment.setOperationsType(FILE_OPERATIONS_CODE)
-                    }
-                    fragment.apply {
-                        setFileName(model.name)
-                        setFilePath(currentPath)
-                        setType(FILE_TYPE)
-                    }
-                    val bottomSheet = OnHoldBottomSheetDialog(fragmentFactory = { fragment }, dismissListener = { postEvent(HomeEvent.ChangePath(state.currentPath)) })
-
-
-                    if (!bottomSheet.isAdded) {
-                        bottomSheet.show(parentFragmentManager, bottomSheet.tag)
-                    }
+                    fileLongPress(position, model, state)
                 }
             }
         )
@@ -260,6 +193,85 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
     }
 
+    private fun fileLongPress(position: Int, model: FileFolderModel, state: HomeUiState) {
+        val fragment = BottomSheetFragment()
+        val fileExtension = if ((model as FileModel).name.contains(".")) {
+            (model).name.substringAfterLast(".")
+        } else ""
+        when (fileExtension) {
+            APK_FILE -> fragment.setOperationsType(APK_OPERATIONS_CODE)
+            in ARCHIVING_ALGORITHMS -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+            in COMPRESSION_ALGORITHMS -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+            in COMPRESSION_AND_ARCHIVE -> fragment.setOperationsType(ARCHIVE_OPERATIONS_CODE)
+            else -> fragment.setOperationsType(FILE_OPERATIONS_CODE)
+        }
+        fragment.apply {
+            setFileName(model.name)
+            setFilePath(currentPath)
+            setType(FILE_TYPE)
+        }
+        val bottomSheet = OnHoldBottomSheetDialog(fragmentFactory = { fragment }, dismissListener = { postEvent(HomeEvent.ChangePath(state.currentPath)) })
+
+
+        if (!bottomSheet.isAdded) {
+            bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+        }
+    }
+
+    private fun folderLongPress(position: Int, model: FileFolderModel, state: HomeUiState) {
+        val fragment = BottomSheetFragment()
+        fragment.apply {
+            setFileName((model as FolderModel).name)
+            setOperationsType(FOLDER_OPERATIONS_CODE)
+            setFilePath(currentPath)
+            setType(FOLDER_TYPE)
+            setResultListener(this@HomeFragment)
+        }
+        val bottomSheet = OnHoldBottomSheetDialog(
+            fragmentFactory = { fragment },
+            dismissListener = {
+                postEvent(HomeEvent.ChangePath(state.currentPath))
+            }
+        )
+
+        if (!bottomSheet.isAdded) {
+            bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+        }
+    }
+
+    private fun fileClick(position: Int, model: FileFolderModel, state: HomeUiState) {
+        hideFab()
+
+        if (!isClickable) return // Ignore clicks if interaction is disabled
+        isClickable = false
+        FileHandler.openFile(state.currentPath, (model as FileModel).name, this@HomeFragment, false)
+        isClickable = true // Reset the flag after handling the intent
+    }
+
+    private fun folderClick(position: Int, model: FileFolderModel, state: HomeUiState) {
+        hideFab()
+
+        if (!isClickable) return // Ignore clicks if interaction is disabled
+        isClickable = false
+
+        val folderName = (model as FolderModel).name
+        val temporaryCurrentPath = if (state.currentPath.endsWith("/")) {
+            state.currentPath + folderName
+        } else {
+            "${state.currentPath}/$folderName"
+        }
+
+        if (temporaryCurrentPath !in RESTRICTED_DIRECTORIES) {
+            postEvent(HomeEvent.ChangePath(temporaryCurrentPath))
+            state.currentPath = temporaryCurrentPath
+        }
+        binding.pathTv.text = state.currentPath
+
+        currentPath = state.currentPath
+
+        // Re-enable interaction after a short delay
+        binding.root.postDelayed({ isClickable = true }, 500)
+    }
     private fun switchCopyMode() {
         binding.apply {
             homeCancelIv.visibility = VISIBLE
