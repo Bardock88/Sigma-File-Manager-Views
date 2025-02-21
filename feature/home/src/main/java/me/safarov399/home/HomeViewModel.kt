@@ -67,6 +67,18 @@ class HomeViewModel @Inject constructor(
                     )
                 )
             }
+
+            is HomeEvent.SwitchOperationMode -> {
+                setState(
+                    getCurrentState().copy(
+                        operationModel = event.operationModel
+                    )
+                )
+            }
+
+            is HomeEvent.Copy -> {
+                copy(event.filePaths, event.newPath, event.overwrite)
+            }
         }
     }
 
@@ -84,6 +96,33 @@ class HomeViewModel @Inject constructor(
 
     private fun getSortOrder(): Int {
         return sortingPreferenceRepository.getSortOrderPreference()
+    }
+
+    private fun copy(filePaths: List<String>, newPath: String, overwrite: Boolean = false) {
+        var problemWithCopying = false
+        for (filePath in filePaths) {
+            try {
+                if(!isCopyingIntoItself(filePath, newPath)) {
+                    val file = File(filePath)
+                    val destination = File(newPath, file.name)
+                    file.copyRecursively(destination, overwrite)   // this function writes the contents of a directory instead of itself, which is why a new variable called destination has been created.
+                } else {
+                    problemWithCopying = true
+                    postEffect(HomeEffect.CopyingIntoItself)
+                }
+
+            } catch (e: FileAlreadyExistsException) {
+                problemWithCopying = true
+                postEffect(HomeEffect.CopiedFileAlreadyExist(e.file.name, operationFiles = filePaths, newPath))
+            }
+        }
+        if(!problemWithCopying) {
+            postEffect(HomeEffect.CopySuccessful)
+        }
+    }
+
+    private fun isCopyingIntoItself(sourcePath: String, destinationPath: String): Boolean {
+        return destinationPath.startsWith(sourcePath) // Prevents self-copy and subfolder copy
     }
 
     private fun createFileFolder(name: String, path: String, type: Int) {

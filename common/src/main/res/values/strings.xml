@@ -57,4 +57,10 @@
     <string name="deletion_failure">Some items could not be deleted.</string>
     <string name="file">file</string>
     <string name="folder">folder</string>
+    <string name="cannot_copy_into_itself">Cannot copy into itself or subdirectories.</string>
+    <string name="copied_to_path">%1$s %2$s</string>
+    <string name="copied_to">File copied to</string>
+    <string name="cannot_copy_requires_root">This folder cannot be copied. Requires root access.</string>
+    <string name="select_destination_folder">Select destination folder</string>
+    <string name="sorting_options">Sorting Options</string>
 </resources>

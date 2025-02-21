@@ -15,12 +15,12 @@
         android:maxLines="1"
         android:paddingStart="@dimen/toolbar_padding_start"
         android:paddingTop="@dimen/toolbar_padding_top"
-        android:paddingBottom="@dimen/toolbar_padding_bottom"
         android:paddingEnd="@dimen/toolbar_padding_end"
+        android:paddingBottom="@dimen/toolbar_padding_bottom"
         android:textColor="@color/white"
         android:textSize="@dimen/toolbar_text_size"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/home_cancel_iv"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
@@ -29,10 +29,31 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:contentDescription="@string/three_dots_sorting_cd"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/path_tv"
+        android:src="@drawable/three_dots_vertical"
         app:layout_constraintBottom_toBottomOf="@id/path_tv"
-        android:src="@drawable/three_dots_vertical"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/path_tv" />
+
+    <ImageView
+        android:id="@+id/home_cancel_iv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:src="@drawable/ic_cancel"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/path_tv"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/path_tv" />
+
+    <ImageView
+        android:id="@+id/home_paste_iv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingEnd="16dp"
+        android:src="@drawable/ic_paste"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@id/home_three_dots_iv"
+        app:layout_constraintTop_toTopOf="@id/home_three_dots_iv" />
 
     <me.safarov399.uikit.custom_views.tiles.NavigateUpTile
         android:id="@+id/home_nav_up"
