@@ -1,4 +1,4 @@
-package me.safarov399.uikit.custom_views.dialogs.permission
+package me.safarov399.uikit.custom_views.dialogs
 
 import androidx.fragment.app.Fragment
 
@@ -59,6 +59,21 @@ object DialogProvider {
             }
             setCancelButtonOnClickListener {
                 onCancel.invoke(this)
+                dismiss()
+            }
+            show()
+        }
+    }
+
+    fun renameDialog(fragment: Fragment, oldText: String, onConfirm: (EditTextDialog) -> Unit) {
+        EditTextDialog(fragment.requireActivity()).apply {
+            setTitle("Rename")
+            setHint("New name")
+            setText(oldText)
+            setConfirmAction {
+                onConfirm.invoke(this)
+            }
+            setCancelAction {
                 dismiss()
             }
             show()

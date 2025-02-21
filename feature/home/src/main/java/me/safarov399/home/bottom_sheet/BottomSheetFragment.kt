@@ -26,7 +26,7 @@ import me.safarov399.core.navigation.NavigationDestinations.FILE_OPERATIONS_CODE
 import me.safarov399.core.navigation.NavigationDestinations.FOLDER_OPERATIONS_CODE
 import me.safarov399.domain.models.adapter.OnHoldModel
 import me.safarov399.home.databinding.FragmentOnHoldBottomSheetBinding
-import me.safarov399.uikit.custom_views.dialogs.permission.DialogProvider
+import me.safarov399.uikit.custom_views.dialogs.DialogProvider
 
 @AndroidEntryPoint
 class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, BottomSheetViewModel, BottomSheetState, BottomSheetEffect, BottomSheetEvent>() {
@@ -118,7 +118,11 @@ class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, Botto
                     }
 
                     me.safarov399.common.R.string.shred -> postEvent(BottomSheetEvent.Shred(listOf(fileAndPathMerger(fileName!!, filePath!!)), 0))
-                    me.safarov399.common.R.string.rename -> postEvent(BottomSheetEvent.Rename(filePath!!, fileName!!, ""))
+                    me.safarov399.common.R.string.rename -> {
+                        val filename = fileAndPathMerger(fileName!!, filePath!!)
+                        val operation = OperationModel(OperationTypes.RENAME, file = filename)
+                        sendOperationToHomeFragment(operation)
+                    }
                     me.safarov399.common.R.string.copy -> {
                         val selectedFiles = listOf(fileAndPathMerger(fileName!!, filePath!!))
                         val operation = OperationModel(OperationTypes.COPY, selectedFiles)

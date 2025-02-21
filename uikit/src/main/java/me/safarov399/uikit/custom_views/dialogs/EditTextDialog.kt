@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.view.Window
 import me.safarov399.uikit.databinding.CreateFileFolderDialogBinding
 
-class CreateFileFolderDialog(ctx: Context): Dialog(ctx) {
+class EditTextDialog(ctx: Context): Dialog(ctx) {
     private val binding: CreateFileFolderDialogBinding
 
     init {
@@ -33,5 +33,11 @@ class CreateFileFolderDialog(ctx: Context): Dialog(ctx) {
         binding.cffCancelBtn.setOnClickListener {
             onClick.invoke()
         }
+    }
+    fun getText(): String {
+        return binding.cffNameTiet.text.toString()
+    }
+    fun setText(text: String) {
+        binding.cffNameTiet.setText(text)
     }
 }
