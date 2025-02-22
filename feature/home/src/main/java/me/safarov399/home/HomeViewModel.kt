@@ -113,7 +113,12 @@ class HomeViewModel @Inject constructor(
     private fun move(sourcePaths: List<String>, destinationPath: String) {
         var isSuccess = true
         for(sourcePath in sourcePaths) {
-            isSuccess = isSuccess && moveFileAtomic(sourcePath, destinationPath)
+            if(!isCopyingIntoItself(sourcePath, destinationPath)) {
+                isSuccess = isSuccess && moveFileAtomic(sourcePath, destinationPath)
+
+            } else {
+                postEffect(HomeEffect.CopyingIntoItself)
+            }
         }
         if(isSuccess) postEffect(HomeEffect.MoveSuccessful)
         else postEffect(HomeEffect.MoveUnSuccessful)
