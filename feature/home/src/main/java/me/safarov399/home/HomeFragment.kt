@@ -42,6 +42,7 @@ import me.safarov399.core.base.BaseFragment
 import me.safarov399.core.file.FileHandler
 import me.safarov399.core.file.OperationModel
 import me.safarov399.core.file.OperationTypes.COPY
+import me.safarov399.core.file.OperationTypes.MOVE
 import me.safarov399.core.file.OperationTypes.NORMAL
 import me.safarov399.core.file.OperationTypes.RENAME
 import me.safarov399.core.file.isNameInvalid
@@ -160,11 +161,24 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             HomeEffect.CopySuccessful -> {
                 postEvent(HomeEvent.ChangePath(currentPath))
                 switchNormalMode()
+                this.operationMode = NORMAL
                 Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.copied_to_path, getString(me.safarov399.common.R.string.copied_to), currentPath), Toast.LENGTH_SHORT).show()
             }
 
             HomeEffect.CopyingIntoItself -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.cannot_copy_into_itself), Toast.LENGTH_SHORT).show()
             HomeEffect.DoesNotExist -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_does_not_exist), Toast.LENGTH_SHORT).show()
+            HomeEffect.MoveSuccessful -> {
+                postEvent(HomeEvent.ChangePath(currentPath))
+                switchNormalMode()
+                this.operationMode = NORMAL
+                Toast.makeText(requireActivity(), "Move successful.", Toast.LENGTH_SHORT).show()
+            }
+            HomeEffect.MoveUnSuccessful -> {
+                postEvent(HomeEvent.ChangePath(currentPath))
+                switchNormalMode()
+                this.operationMode = NORMAL
+                Toast.makeText(requireActivity(), "Could not move some or all of the files.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -172,6 +186,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     override fun onStateUpdate(state: HomeUiState) {
         if (operationMode == COPY) {
             switchCopyMode()
+        } else if(operationMode == MOVE) {
+            switchMoveMode()
         }
         operationFiles = state.operationModel.files
         currentPath = state.currentPath
@@ -237,7 +253,14 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
 
         binding.homePasteIv.setOnClickListener {
-            postEvent(HomeEvent.Copy(operationFiles!!, state.currentPath, false))
+            when(this.operationMode) {
+                COPY -> {
+                    postEvent(HomeEvent.Copy(operationFiles!!, state.currentPath, false))
+                }
+                MOVE -> {
+                    postEvent(HomeEvent.Move(operationFiles!!, state.currentPath))
+                }
+            }
         }
     }
 
@@ -327,6 +350,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             homeCancelIv.visibility = VISIBLE
             homePasteIv.visibility = VISIBLE
         }
+    }
+
+    private fun switchMoveMode() {
+        switchCopyMode()        // For the time being.
     }
 
     private fun switchNormalMode() {
@@ -654,6 +681,20 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                             it.dismiss()
                         }
                     }
+                }
+            }
+
+            MOVE -> {
+                var doesProblematicFileExist = false
+                for(file in operationModel.files!!) {
+                    if(file in OPERATION_ACCESS_DENIED_DIRECTORIES) doesProblematicFileExist = true
+                }
+                if(doesProblematicFileExist) {
+                    Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.cannot_move_requires_root), Toast.LENGTH_SHORT).show()
+                } else {
+                    this.operationMode = MOVE
+                    this.operationFiles = operationModel.files
+                    postEvent(HomeEvent.SwitchOperationMode(operationModel))
                 }
             }
         }

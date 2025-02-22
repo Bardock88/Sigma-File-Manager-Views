@@ -9,4 +9,6 @@ sealed class HomeEffect {
     data object CopySuccessful: HomeEffect()
     data object CopyingIntoItself: HomeEffect()
     data object DoesNotExist: HomeEffect()
+    data object MoveSuccessful: HomeEffect()
+    data object MoveUnSuccessful: HomeEffect()
 }

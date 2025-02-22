@@ -20,6 +20,9 @@ import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.domain.repo.AbstractSortingPreferenceRepository
 import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import javax.inject.Inject
 
 @HiltViewModel
@@ -78,11 +81,15 @@ class HomeViewModel @Inject constructor(
             }
 
             is HomeEvent.Copy -> {
-                copy(event.filePaths, event.newPath, event.overwrite)
+                copy(event.sourcePaths, event.destination, event.overwrite)
             }
 
             is HomeEvent.Rename -> {
                 rename(event.oldName, event.newName)
+            }
+
+            is HomeEvent.Move -> {
+                move(event.sourcePaths, event.destination)
             }
         }
     }
@@ -102,6 +109,58 @@ class HomeViewModel @Inject constructor(
     private fun getSortOrder(): Int {
         return sortingPreferenceRepository.getSortOrderPreference()
     }
+
+    private fun move(sourcePaths: List<String>, destinationPath: String) {
+        var isSuccess = true
+        for(sourcePath in sourcePaths) {
+            isSuccess = isSuccess && moveFileAtomic(sourcePath, destinationPath)
+        }
+        if(isSuccess) postEffect(HomeEffect.MoveSuccessful)
+        else postEffect(HomeEffect.MoveUnSuccessful)
+    }
+
+    private fun moveFileAtomic(sourcePath: String, destinationPath: String): Boolean {
+        val source = File(sourcePath).toPath()
+        val destination = File(destinationPath).toPath()
+
+        if (!Files.exists(source)) {
+            return false
+        }
+
+        if (Files.exists(destination)) {
+            return false
+        }
+
+        val backupPath = File("$destinationPath.bak").toPath()
+        try {
+            // Backup the source file in case the operation fails
+            Files.copy(source, backupPath, StandardCopyOption.REPLACE_EXISTING)
+
+            // Move the file atomically. If source and destination are on the same filesystem, this will be atomic.
+            Files.move(source, destination, StandardCopyOption.REPLACE_EXISTING)
+
+            // Remove the backup file if move was successful
+            Files.delete(backupPath)
+
+            println("File moved successfully.")
+            return true
+        } catch (e: FileAlreadyExistsException) {
+            // Handles case where destination file already exists
+            println("Destination file already exists: ${e.message}")
+            return false
+        } catch (e: IOException) {
+            // Handles other I/O issues like permissions, invalid paths, etc.
+            println("Error moving file: ${e.message}")
+
+            // Restore from backup in case of failure
+            Files.move(backupPath, source, StandardCopyOption.REPLACE_EXISTING)
+            println("Restored source file from backup.")
+
+            return false
+        }
+    }
+
+
 
     private fun copy(filePaths: List<String>, newPath: String, overwrite: Boolean = false) {
         var problemWithCopying = false
@@ -129,6 +188,7 @@ class HomeViewModel @Inject constructor(
     private fun isCopyingIntoItself(sourcePath: String, destinationPath: String): Boolean {
         return destinationPath.startsWith(sourcePath) // Prevents self-copy and subfolder copy
     }
+
 
     private fun rename(oldName: String, newName: String) {
         val oldFile = File(oldName)
