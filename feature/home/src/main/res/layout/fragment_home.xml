@@ -103,9 +103,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
+        android:labelFor="@id/home_create_folder_fab"
         android:text="@string/create_folder"
         android:textStyle="bold"
-        android:labelFor="@id/home_create_folder_fab"
         app:layout_constraintBottom_toBottomOf="@id/home_create_folder_fab"
         app:layout_constraintEnd_toStartOf="@id/home_create_folder_fab"
         app:layout_constraintTop_toTopOf="@id/home_create_folder_fab" />
@@ -127,10 +127,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
+        android:labelFor="@id/home_create_file_fab"
         android:text="@string/create_file"
         android:textStyle="bold"
-        android:labelFor="@id/home_create_file_fab"
         app:layout_constraintBottom_toBottomOf="@id/home_create_file_fab"
         app:layout_constraintEnd_toStartOf="@id/home_create_file_fab"
         app:layout_constraintTop_toTopOf="@id/home_create_file_fab" />
+
+    <TextView
+        android:id="@+id/home_empty_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/empty"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/home_nav_up" />
 </androidx.constraintlayout.widget.ConstraintLayout>
