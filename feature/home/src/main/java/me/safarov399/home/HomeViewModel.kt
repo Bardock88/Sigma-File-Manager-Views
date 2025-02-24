@@ -21,6 +21,7 @@ import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.domain.repo.AbstractSortingPreferenceRepository
 import java.io.File
 import java.io.IOException
+import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import javax.inject.Inject
@@ -112,58 +113,67 @@ class HomeViewModel @Inject constructor(
 
     private fun move(sourcePaths: List<String>, destinationPath: String) {
         var isSuccess = true
-        for(sourcePath in sourcePaths) {
-            if(!isCopyingIntoItself(sourcePath, destinationPath)) {
+        for (sourcePath in sourcePaths) {
+            if (!isCopyingIntoItself(sourcePath, destinationPath)) {
                 isSuccess = isSuccess && moveFileAtomic(sourcePath, destinationPath)
-
             } else {
                 postEffect(HomeEffect.CopyingIntoItself)
+                isSuccess = false
             }
         }
-        if(isSuccess) postEffect(HomeEffect.MoveSuccessful)
+        if (isSuccess) postEffect(HomeEffect.MoveSuccessful)
         else postEffect(HomeEffect.MoveUnSuccessful)
     }
 
     private fun moveFileAtomic(sourcePath: String, destinationPath: String): Boolean {
         val source = File(sourcePath).toPath()
-        val destination = File(destinationPath).toPath()
+        val destinationFile = File(destinationPath, File(sourcePath).name).toPath()
 
         if (!Files.exists(source)) {
+            postEffect(HomeEffect.DoesNotExist(sourcePath))
             return false
         }
 
-        if (Files.exists(destination)) {
+//            Destination file already exists
+        if (Files.exists(destinationFile)) {
             return false
         }
 
-        val backupPath = File("$destinationPath.bak").toPath()
-        try {
-            // Backup the source file in case the operation fails
+        val backupPath = File("${sourcePath}.bak").toPath() // Backup in the source directory
+
+        return try {
+            // Create a backup of the original file
             Files.copy(source, backupPath, StandardCopyOption.REPLACE_EXISTING)
 
-            // Move the file atomically. If source and destination are on the same filesystem, this will be atomic.
-            Files.move(source, destination, StandardCopyOption.REPLACE_EXISTING)
+            // Attempt an atomic move
+            Files.move(source, destinationFile, StandardCopyOption.ATOMIC_MOVE)
 
-            // Remove the backup file if move was successful
-            Files.delete(backupPath)
+            // If move succeeds, delete the backup
+            Files.deleteIfExists(backupPath)
 
-            println("File moved successfully.")
-            return true
-        } catch (e: FileAlreadyExistsException) {
-            // Handles case where destination file already exists
-            println("Destination file already exists: ${e.message}")
-            return false
+            true
+        } catch (e: AtomicMoveNotSupportedException) {
+//            Atomic move not supported. Falling back to normal move.
+            try {
+                Files.move(source, destinationFile, StandardCopyOption.REPLACE_EXISTING)
+                Files.deleteIfExists(backupPath)
+//                File moved successfully (non-atomic)
+                true
+            } catch (ioe: IOException) {
+                // Restore from backup in case of failure
+                Files.move(backupPath, source, StandardCopyOption.REPLACE_EXISTING)
+
+                false
+            }
         } catch (e: IOException) {
-            // Handles other I/O issues like permissions, invalid paths, etc.
             println("Error moving file: ${e.message}")
 
             // Restore from backup in case of failure
             Files.move(backupPath, source, StandardCopyOption.REPLACE_EXISTING)
-            println("Restored source file from backup.")
-
-            return false
+            false
         }
     }
+
 
 
 
@@ -211,7 +221,7 @@ class HomeViewModel @Inject constructor(
             }
 
         } else {
-            postEffect(HomeEffect.DoesNotExist)
+            postEffect(HomeEffect.DoesNotExist(oldName))
         }
     }
 

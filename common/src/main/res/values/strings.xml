@@ -75,6 +75,8 @@
     <string name="paste_here">Paste here</string>
     <string name="extended_floating_action_button_text">Create new file or folder</string>
     <string name="cannot_rename_requires_root">Cannot rename this folder. Requires root access.</string>
-    <string name="file_does_not_exist">File does not exist</string>
+    <string name="file_does_not_exist">File does not exist: %1$s</string>
     <string name="name_has_invalid_characters">Name contains invalid characters.</string>
+    <string name="move_successful">Move successful.</string>
+    <string name="could_not_move_some_or_all">Could not move some or all of the files.</string>
 </resources>

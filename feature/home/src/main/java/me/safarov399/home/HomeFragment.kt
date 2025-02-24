@@ -166,25 +166,24 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             }
 
             HomeEffect.CopyingIntoItself -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.cannot_copy_into_itself), Toast.LENGTH_SHORT).show()
-            HomeEffect.DoesNotExist -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_does_not_exist), Toast.LENGTH_SHORT).show()
+            is HomeEffect.DoesNotExist -> Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.file_does_not_exist, effect.source), Toast.LENGTH_SHORT).show()
             HomeEffect.MoveSuccessful -> {
                 postEvent(HomeEvent.ChangePath(currentPath))
                 switchNormalMode()
                 this.operationMode = NORMAL
-                Toast.makeText(requireActivity(), "Move successful.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.move_successful), Toast.LENGTH_SHORT).show()
             }
             HomeEffect.MoveUnSuccessful -> {
                 postEvent(HomeEvent.ChangePath(currentPath))
                 switchNormalMode()
                 this.operationMode = NORMAL
-                Toast.makeText(requireActivity(), "Could not move some or all of the files.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.could_not_move_some_or_all), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
 
     override fun onStateUpdate(state: HomeUiState) {
-        println(state.currentPath)
         if (operationMode == COPY) {
             switchCopyMode()
         } else if(operationMode == MOVE) {
@@ -388,7 +387,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         if (state.currentPath != DEFAULT_DIRECTORY) {
             hideFab()
             val nextPath = state.currentPath.substringBeforeLast("/")
-            println("\n\n\n NAVUP $nextPath")
             postEvent(
                 HomeEvent.ChangePath(
                     nextPath
