@@ -2,7 +2,6 @@ package me.safarov399.home
 
 import android.Manifest
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
@@ -429,7 +428,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
             homeCreateFileFab.setOnClickListener {
                 showCreateFileFolderDialog(FILE_TYPE)
             }
-            homeThreeDotsIv.setOnClickListener {
+            homeSortIv.setOnClickListener {
                 showSortingPopup(it)
             }
         }
@@ -493,7 +492,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         val headerItem = popup.menu.findItem(me.safarov399.common.R.id.sort_header)
         val headerTitle = SpannableString(getString(me.safarov399.common.R.string.sorting_options))
         headerTitle.setSpan(StyleSpan(Typeface.BOLD), 0, headerTitle.length, 0)
-        headerTitle.setSpan(ForegroundColorSpan(Color.WHITE), 0, headerTitle.length, 0)
+        headerTitle.setSpan(ForegroundColorSpan(requireActivity().getColor(me.safarov399.uikit.R.color.default_color_inverse)), 0, headerTitle.length, 0)
         headerItem.title = headerTitle
         headerItem.isEnabled = false  // Make it non-clickable
 
