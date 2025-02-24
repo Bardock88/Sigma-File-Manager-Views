@@ -128,7 +128,11 @@ class BottomSheetFragment : BaseFragment<FragmentOnHoldBottomSheetBinding, Botto
                         val operation = OperationModel(OperationTypes.COPY, selectedFiles)
                         sendOperationToHomeFragment(operation)
                     }
-                    me.safarov399.common.R.string.move_to -> postEvent(BottomSheetEvent.Move(listOf(fileAndPathMerger(fileName!!, filePath!!)), filePath!!, ""))
+                    me.safarov399.common.R.string.move_to -> {
+                        val filename = listOf(fileAndPathMerger(fileName!!, filePath!!))
+                        val operation = OperationModel(OperationTypes.MOVE, filename)
+                        sendOperationToHomeFragment(operation)
+                    }
                     me.safarov399.common.R.string.add_to_favorites -> postEvent(BottomSheetEvent.AddToFavorites(listOf(fileAndPathMerger(fileName!!, filePath!!))))
                     me.safarov399.common.R.string.extract -> postEvent(BottomSheetEvent.Extract(fileAndPathMerger(fileName!!, filePath!!), ""))
                     me.safarov399.common.R.string.create_shortcut -> postEvent(BottomSheetEvent.CreateShortcut(fileAndPathMerger(fileName!!, filePath!!)))

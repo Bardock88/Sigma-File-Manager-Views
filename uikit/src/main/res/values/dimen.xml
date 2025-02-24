@@ -3,8 +3,8 @@
     <dimen name="toolbar_padding_start">56dp</dimen>
     <dimen name="toolbar_padding_bottom">8dp</dimen>
     <dimen name="toolbar_padding_top">8dp</dimen>
-    <dimen name="toolbar_padding_end">48dp</dimen>
-    <dimen name="toolbar_text_size">20sp</dimen>
+    <dimen name="toolbar_padding_end">85dp</dimen>
+    <dimen name="toolbar_text_size">18sp</dimen>
 
     <dimen name="nav_up_padding_start">16dp</dimen>
     <dimen name="nav_up_padding_top">16dp</dimen>

@@ -20,6 +20,10 @@ import me.safarov399.domain.models.adapter.FileModel
 import me.safarov399.domain.models.adapter.FolderModel
 import me.safarov399.domain.repo.AbstractSortingPreferenceRepository
 import java.io.File
+import java.io.IOException
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import javax.inject.Inject
 
 @HiltViewModel
@@ -78,11 +82,15 @@ class HomeViewModel @Inject constructor(
             }
 
             is HomeEvent.Copy -> {
-                copy(event.filePaths, event.newPath, event.overwrite)
+                copy(event.sourcePaths, event.destination, event.overwrite)
             }
 
             is HomeEvent.Rename -> {
                 rename(event.oldName, event.newName)
+            }
+
+            is HomeEvent.Move -> {
+                move(event.sourcePaths, event.destination)
             }
         }
     }
@@ -102,6 +110,72 @@ class HomeViewModel @Inject constructor(
     private fun getSortOrder(): Int {
         return sortingPreferenceRepository.getSortOrderPreference()
     }
+
+    private fun move(sourcePaths: List<String>, destinationPath: String) {
+        var isSuccess = true
+        for (sourcePath in sourcePaths) {
+            if (!isCopyingIntoItself(sourcePath, destinationPath)) {
+                isSuccess = isSuccess && moveFileAtomic(sourcePath, destinationPath)
+            } else {
+                postEffect(HomeEffect.CopyingIntoItself)
+                isSuccess = false
+            }
+        }
+        if (isSuccess) postEffect(HomeEffect.MoveSuccessful)
+        else postEffect(HomeEffect.MoveUnSuccessful)
+    }
+
+    private fun moveFileAtomic(sourcePath: String, destinationPath: String): Boolean {
+        val source = File(sourcePath).toPath()
+        val destinationFile = File(destinationPath, File(sourcePath).name).toPath()
+
+        if (!Files.exists(source)) {
+            postEffect(HomeEffect.DoesNotExist(sourcePath))
+            return false
+        }
+
+//            Destination file already exists
+        if (Files.exists(destinationFile)) {
+            return false
+        }
+
+        val backupPath = File("${sourcePath}.bak").toPath() // Backup in the source directory
+
+        return try {
+            // Create a backup of the original file
+            Files.copy(source, backupPath, StandardCopyOption.REPLACE_EXISTING)
+
+            // Attempt an atomic move
+            Files.move(source, destinationFile, StandardCopyOption.ATOMIC_MOVE)
+
+            // If move succeeds, delete the backup
+            Files.deleteIfExists(backupPath)
+
+            true
+        } catch (e: AtomicMoveNotSupportedException) {
+//            Atomic move not supported. Falling back to normal move.
+            try {
+                Files.move(source, destinationFile, StandardCopyOption.REPLACE_EXISTING)
+                Files.deleteIfExists(backupPath)
+//                File moved successfully (non-atomic)
+                true
+            } catch (ioe: IOException) {
+                // Restore from backup in case of failure
+                Files.move(backupPath, source, StandardCopyOption.REPLACE_EXISTING)
+
+                false
+            }
+        } catch (e: IOException) {
+            println("Error moving file: ${e.message}")
+
+            // Restore from backup in case of failure
+            Files.move(backupPath, source, StandardCopyOption.REPLACE_EXISTING)
+            false
+        }
+    }
+
+
+
 
     private fun copy(filePaths: List<String>, newPath: String, overwrite: Boolean = false) {
         var problemWithCopying = false
@@ -130,6 +204,7 @@ class HomeViewModel @Inject constructor(
         return destinationPath.startsWith(sourcePath) // Prevents self-copy and subfolder copy
     }
 
+
     private fun rename(oldName: String, newName: String) {
         val oldFile = File(oldName)
         val newPath = fileAndPathMerger(newName, oldName.substringBeforeLast("/"))
@@ -146,7 +221,7 @@ class HomeViewModel @Inject constructor(
             }
 
         } else {
-            postEffect(HomeEffect.DoesNotExist)
+            postEffect(HomeEffect.DoesNotExist(oldName))
         }
     }
 
