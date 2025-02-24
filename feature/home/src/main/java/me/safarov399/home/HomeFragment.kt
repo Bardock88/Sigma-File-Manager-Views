@@ -184,6 +184,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
 
     override fun onStateUpdate(state: HomeUiState) {
+        println(state.currentPath)
         if (operationMode == COPY) {
             switchCopyMode()
         } else if(operationMode == MOVE) {
@@ -239,6 +240,24 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                         override fun onHoldFileFolder(position: Int, model: FileFolderModel) {
                             fileLongPress(model, state)
                         }
+                    }
+                )
+            }
+
+            MOVE -> {
+                fileFolderAdapter?.setOnClickListener(object : OnClickListener {
+                    override fun onClickFileFolder(position: Int, model: FileFolderModel) {
+                        folderClick(model, state)
+                    }
+                }, object : OnClickListener {
+                    override fun onClickFileFolder(position: Int, model: FileFolderModel) {}
+                })
+
+                fileFolderAdapter?.setOnHoldListener(
+                    object : OnHoldListener {
+                        override fun onHoldFileFolder(position: Int, model: FileFolderModel) {}
+                    }, object : OnHoldListener {
+                        override fun onHoldFileFolder(position: Int, model: FileFolderModel) {}
                     }
                 )
             }
@@ -369,6 +388,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         if (state.currentPath != DEFAULT_DIRECTORY) {
             hideFab()
             val nextPath = state.currentPath.substringBeforeLast("/")
+            println("\n\n\n NAVUP $nextPath")
             postEvent(
                 HomeEvent.ChangePath(
                     nextPath
