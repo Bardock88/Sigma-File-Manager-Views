@@ -173,6 +173,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 this.operationMode = NORMAL
                 Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.move_successful), Toast.LENGTH_SHORT).show()
             }
+
             HomeEffect.MoveUnSuccessful -> {
                 postEvent(HomeEvent.ChangePath(currentPath))
                 switchNormalMode()
@@ -186,7 +187,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
     override fun onStateUpdate(state: HomeUiState) {
         if (operationMode == COPY) {
             switchCopyMode()
-        } else if(operationMode == MOVE) {
+        } else if (operationMode == MOVE) {
             switchMoveMode()
         }
         operationFiles = state.operationModel.files
@@ -198,6 +199,9 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 rv?.scrollToPosition(0)
             }
         }
+        if (state.currentFileFolders.isEmpty()) {
+            binding.homeEmptyTv.visibility = VISIBLE
+        } else binding.homeEmptyTv.visibility = GONE
         isAscending = state.isAscending
 
         when (this.operationMode) {
@@ -271,10 +275,11 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
         }
 
         binding.homePasteIv.setOnClickListener {
-            when(this.operationMode) {
+            when (this.operationMode) {
                 COPY -> {
                     postEvent(HomeEvent.Copy(operationFiles!!, state.currentPath, false))
                 }
+
                 MOVE -> {
                     postEvent(HomeEvent.Move(operationFiles!!, state.currentPath))
                 }
@@ -690,10 +695,9 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
                 } else {
                     DialogProvider.renameDialog(this, operationModel.file!!.substringAfterLast("/")) {
                         val newName = it.getText()
-                        if(isNameInvalid(newName)) {
+                        if (isNameInvalid(newName)) {
                             Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.name_has_invalid_characters), Toast.LENGTH_SHORT).show()
-                        }
-                        else {
+                        } else {
                             postEvent(HomeEvent.Rename(operationModel.file!!, newName))
                             postEvent(HomeEvent.ChangePath(currentPath))
                             it.dismiss()
@@ -704,10 +708,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel, HomeUiStat
 
             MOVE -> {
                 var doesProblematicFileExist = false
-                for(file in operationModel.files!!) {
-                    if(file in OPERATION_ACCESS_DENIED_DIRECTORIES) doesProblematicFileExist = true
+                for (file in operationModel.files!!) {
+                    if (file in OPERATION_ACCESS_DENIED_DIRECTORIES) doesProblematicFileExist = true
                 }
-                if(doesProblematicFileExist) {
+                if (doesProblematicFileExist) {
                     Toast.makeText(requireActivity(), getString(me.safarov399.common.R.string.cannot_move_requires_root), Toast.LENGTH_SHORT).show()
                 } else {
                     this.operationMode = MOVE
