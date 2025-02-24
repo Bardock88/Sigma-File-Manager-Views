@@ -2,10 +2,9 @@ Upcoming features.
 
 
 • File Operations:
-    • Copy
-    • Move
-    • Rename
-    • Delete
+    • Bulk Copy
+    • Bulk Move
+    • Bulk Delete
 • Display file details:
     • Size
     • Modified date
